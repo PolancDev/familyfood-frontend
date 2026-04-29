@@ -1,0 +1,205 @@
+<main
+  class="min-h-screen bg-gradient-to-br from-crema via-warm to-orange-50 p-4 md:p-6 lg:p-8"
+  role="main"
+>
+  <div class="max-w-5xl mx-auto space-y-6">
+    <!-- Header -->
+    <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold font-display text-secondary">
+          Panel familiar
+        </h1>
+        @if (currentFamily()) {
+          <p class="text-sm text-gray-500 font-body mt-1">
+            {{ currentFamily()?.name }}
+          </p>
+        }
+      </div>
+      <div class="flex gap-2">
+        <p-button
+          label="Cambiar de familia"
+          icon="pi pi-users"
+          styleClass="p-button-outlined p-button-secondary"
+          (onClick)="goToSetup()"
+        />
+      </div>
+    </header>
+
+    <!-- Loading State -->
+    @if (loading()) {
+      <div class="flex justify-center py-12">
+        <p-progressSpinner
+          aria-label="Cargando datos de la familia"
+          styleClass="w-12 h-12"
+          strokeWidth="4"
+        />
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (error()) {
+      <div
+        class="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-md text-error text-sm"
+        role="alert"
+      >
+        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+        <span>{{ error() }}</span>
+      </div>
+    }
+
+    <!-- No Family State -->
+    @if (!loading() && families().length === 0) {
+      <section
+        class="bg-white rounded-lg md:rounded-xl shadow-md p-8 md:p-12 text-center"
+        aria-labelledby="no-family-title"
+      >
+        <div
+          class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-secondary/10 mb-4"
+        >
+          <i class="pi pi-users text-2xl text-secondary" aria-hidden="true"></i>
+        </div>
+        <h2 id="no-family-title" class="text-lg font-bold font-display text-gray-900 mb-2">
+          No tienes ninguna familia
+        </h2>
+        <p class="text-sm text-gray-500 mb-6">
+          Crea una nueva familia o únete a una existente para empezar a planificar.
+        </p>
+        <p-button
+          label="Configurar familia"
+          icon="pi pi-plus-circle"
+          (onClick)="goToSetup()"
+        />
+      </section>
+    }
+
+    <!-- Family Content -->
+    @if (families().length > 0) {
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Members Section -->
+        <section class="lg:col-span-2" aria-labelledby="members-title">
+          <p-card>
+            <ng-template #title>
+              <div class="flex items-center gap-2">
+                <i class="pi pi-users text-secondary" aria-hidden="true"></i>
+                <h2 id="members-title" class="text-lg font-bold font-display text-gray-900">
+                  Miembros
+                </h2>
+                <p-tag
+                  [value]="members().length.toString()"
+                  severity="info"
+                  styleClass="ml-2"
+                />
+              </div>
+            </ng-template>
+
+            <ng-template #content>
+              @if (members().length === 0) {
+                <p class="text-sm text-gray-500 text-center py-4">
+                  No hay miembros en esta familia todavía.
+                </p>
+              } @else {
+                <p-table
+                  [value]="members()"
+                  [responsive]="true"
+                  styleClass="p-datatable-sm"
+                >
+                  <ng-template #header>
+                    <tr>
+                      <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Rol
+                      </th>
+                      <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+                        Desde
+                      </th>
+                    </tr>
+                  </ng-template>
+                  <ng-template #body let-member>
+                    <tr>
+                      <td class="text-sm text-gray-900">{{ member.userEmail }}</td>
+                      <td>
+                        <p-tag
+                          [value]="member.role"
+                          [severity]="getRoleSeverity(member.role)"
+                        />
+                      </td>
+                      <td class="text-sm text-gray-500 hidden sm:table-cell">
+                        {{ member.joinedAt | date: 'dd/MM/yyyy' }}
+                      </td>
+                    </tr>
+                  </ng-template>
+                </p-table>
+              }
+            </ng-template>
+          </p-card>
+        </section>
+
+        <!-- Pending Requests Section (Admin only) -->
+        @if (isAdmin()) {
+          <section aria-labelledby="requests-title">
+            <p-card>
+              <ng-template #title>
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-clock text-accent" aria-hidden="true"></i>
+                  <h2 id="requests-title" class="text-lg font-bold font-display text-gray-900">
+                    Solicitudes
+                  </h2>
+                  @if (hasPendingRequests()) {
+                    <p-tag
+                      [value]="pendingRequests().length.toString()"
+                      severity="warn"
+                      styleClass="ml-2"
+                    />
+                  }
+                </div>
+              </ng-template>
+
+              <ng-template #content>
+                @if (pendingRequests().length === 0) {
+                  <p class="text-sm text-gray-500 text-center py-4">
+                    No hay solicitudes pendientes.
+                  </p>
+                } @else {
+                  <div class="space-y-3">
+                    @for (request of pendingRequests(); track request.id) {
+                      <div
+                        class="flex flex-col gap-2 p-3 bg-gray-50 rounded-md border border-gray-100"
+                      >
+                        <div class="flex items-center justify-between">
+                          <span class="text-sm font-medium text-gray-900 truncate">
+                            {{ request.userEmail }}
+                          </span>
+                          <p-tag
+                            [value]="request.status"
+                            [severity]="getRequestStatusSeverity(request.status)"
+                            styleClass="text-xs"
+                          />
+                        </div>
+                        <div class="flex gap-2">
+                          <p-button
+                            label="Aprobar"
+                            icon="pi pi-check"
+                            styleClass="p-button-sm p-button-success flex-1"
+                            (onClick)="approveRequest(request.id)"
+                          />
+                          <p-button
+                            label="Rechazar"
+                            icon="pi pi-times"
+                            styleClass="p-button-sm p-button-danger flex-1"
+                            (onClick)="rejectRequest(request.id)"
+                          />
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </ng-template>
+            </p-card>
+          </section>
+        }
+      </div>
+    }
+  </div>
+</main>

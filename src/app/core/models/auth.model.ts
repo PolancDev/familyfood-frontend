@@ -1,4 +1,4 @@
-import { User } from './user.model';
+import { User, Role } from './user.model';
 
 export interface LoginRequest {
   email: string;
@@ -14,14 +14,14 @@ export interface RegisterRequest {
   email: string;
   password: string;
   nombre: string;
-  role?: 'ADMIN' | 'CONSUMER';
+  role?: Role;
 }
 
 export interface RegisterResponse {
   id: string;
   email: string;
   nombre: string;
-  role: 'ADMIN' | 'CONSUMER';
+  role: Role;
   token?: string;
 }
 

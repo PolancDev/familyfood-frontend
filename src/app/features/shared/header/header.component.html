@@ -1,0 +1,105 @@
+<!-- ===== HEADER (sticky top) ===== -->
+<header class="sticky top-0 z-50 w-full bg-primary shadow-md" role="banner">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="flex h-16 items-center justify-between">
+
+      <!-- IZQUIERDA: Avatar + Nombre + Rol -->
+      <div class="flex items-center gap-3 text-white/90 min-w-0">
+        <p-avatar
+          [label]="(authService.user()?.nombre || 'U').charAt(0).toUpperCase()"
+          styleClass="bg-white/20 text-white font-bold text-sm shrink-0"
+          size="normal"
+          shape="circle"
+          [pTooltip]="authService.user()?.nombre || 'Usuario'"
+          tooltipPosition="bottom"
+        />
+        <div class="hidden sm:flex flex-col justify-center leading-tight min-w-0">
+          <span class="font-body text-sm font-medium leading-none truncate">
+            {{ authService.user()?.nombre || 'Usuario' }}
+          </span>
+          <span class="font-body text-xs text-white/60 leading-none mt-0.5 truncate">
+            {{ authService.user()?.role === 'ADMIN' ? 'Administrador' : authService.user()?.role === 'CONSUMER' ? 'Usuario' : authService.user()?.role || '' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- CENTRO: Logo + FamilyFood (destacado) -->
+      <a
+        routerLink="/app"
+        class="flex items-center gap-3 text-white no-underline group absolute left-1/2 -translate-x-1/2"
+        aria-label="FamilyFood - Ir al inicio"
+      >
+        <!-- Logo SVG con glow animado -->
+        <div
+          class="relative flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm
+                 group-hover:bg-white/30 transition-all duration-300
+                 before:absolute before:inset-0 before:rounded-xl before:bg-gradient-to-br before:from-white/30 before:to-transparent before:opacity-0
+                 group-hover:before:opacity-100 before:transition-opacity before:duration-300"
+        >
+          <!-- Anillo de glow pulsante -->
+          <div
+            class="absolute inset-0 rounded-xl bg-white/10 animate-pulse ring-1 ring-white/20
+                   group-hover:ring-white/40 group-hover:animate-none transition-all duration-300"
+            aria-hidden="true"
+          ></div>
+          <svg
+            class="relative w-6 h-6 text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
+            viewBox="0 0 48 48"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <!-- Plato -->
+            <ellipse cx="24" cy="26" rx="16" ry="8" fill="currentColor" fill-opacity="0.9" />
+            <ellipse cx="24" cy="26" rx="12" ry="6" fill="currentColor" fill-opacity="0.5" />
+            <!-- Tenedor (izquierda) -->
+            <path
+              d="M10 10V22C10 24 11 26 13 26V10"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              fill="none"
+            />
+            <circle cx="10" cy="8" r="2" fill="currentColor" />
+            <circle cx="13" cy="8" r="2" fill="currentColor" />
+            <!-- Cuchillo (derecha) -->
+            <path
+              d="M35 8L35 24C35 26 37 26 38 26L38 8"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              fill="none"
+            />
+            <!-- Detalles del plato -->
+            <circle cx="24" cy="26" r="2" fill="white" fill-opacity="0.6" />
+          </svg>
+        </div>
+        <!-- "FamilyFood" con gradiente + glow -->
+        <span
+          class="font-display text-xl font-bold tracking-tight
+                 bg-gradient-to-r from-amber-200 via-yellow-100 to-white
+                 bg-clip-text text-transparent
+                 drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]
+                 group-hover:drop-shadow-[0_0_20px_rgba(255,255,255,0.7)]
+                 transition-all duration-300"
+        >
+          FamilyFood
+        </span>
+      </a>
+
+      <!-- DERECHA: Botón Logout -->
+      <button
+        pButton
+        severity="secondary"
+        variant="text"
+        class="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-lg transition-all duration-200 shrink-0"
+        icon="pi pi-sign-out"
+        (click)="onLogout()"
+        pTooltip="Cerrar sesión"
+        tooltipPosition="bottom"
+        aria-label="Cerrar sesión"
+      ></button>
+
+    </div>
+  </div>
+</header>

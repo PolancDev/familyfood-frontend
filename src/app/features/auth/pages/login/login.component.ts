@@ -85,9 +85,16 @@ export class LoginComponent {
     this.authService.login({ email, password }).subscribe({
       next: () => {
         this.loading.set(false);
-        // Redirigir a la URL guardada o al home
+        //if (this.authService.userRole() === 'INVITADO') {
+        // Redirigir a la URL setup-Family para que elija familia o cree una nueva.
         const returnUrl = new URLSearchParams(window.location.search).get('returnUrl');
-        this.router.navigate([returnUrl || '/']);
+        this.router.navigate([returnUrl || 'app']);
+        /*} else {
+          // Redirigir a la URL guardada o al home
+          const returnUrl = new URLSearchParams(window.location.search).get('returnUrl');
+          this.router.navigate([returnUrl || '/']);
+          
+        }*/
       },
       error: (err) => {
         this.loading.set(false);

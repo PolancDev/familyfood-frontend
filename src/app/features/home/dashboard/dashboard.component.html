@@ -1,0 +1,74 @@
+<div class="space-y-8">
+  <!-- Welcome Section -->
+  <header class="text-center md:text-left">
+    <h1 class="text-2xl md:text-3xl font-bold font-display text-secondary">
+      ¡Hola, {{ authService.user()?.nombre || 'Usuario' }}!
+    </h1>
+    <p class="text-gray-500 font-body mt-1">
+      Bienvenido a FamilyFood. ¿Qué te gustaría hacer hoy?
+    </p>
+  </header>
+
+  <!-- Quick Access Cards -->
+  <section aria-labelledby="quick-access-title">
+    <h2 id="quick-access-title" class="sr-only">Acceso rápido a funcionalidades</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      @for (card of cards; track card.route) {
+        <a
+          [routerLink]="card.route"
+          class="group block no-underline"
+          [attr.aria-label]="'Ir a ' + card.title"
+        >
+          <p-card
+            styleClass="h-full cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border border-gray-100"
+          >
+            <ng-template #content>
+              <div class="flex flex-col items-center text-center p-2">
+                <!-- Icon container -->
+                <div
+                  class="flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br shadow-md mb-4 transition-transform duration-300 group-hover:scale-110"
+                  [ngClass]="card.color"
+                >
+                  <i [class]="card.icon + ' text-2xl text-white'" aria-hidden="true"></i>
+                </div>
+
+                <!-- Title -->
+                <h3 class="text-lg font-bold font-display text-gray-900 mb-2">
+                  {{ card.title }}
+                </h3>
+
+                <!-- Description -->
+                <p class="text-sm text-gray-500 font-body leading-relaxed">
+                  {{ card.description }}
+                </p>
+              </div>
+            </ng-template>
+          </p-card>
+        </a>
+      }
+    </div>
+  </section>
+
+  <!-- Quick Stats / Info -->
+  <section
+    class="bg-white rounded-lg md:rounded-xl shadow-sm border border-gray-100 p-6"
+    aria-labelledby="info-title"
+  >
+    <div class="flex flex-col sm:flex-row items-center gap-4">
+      <div
+        class="flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 flex-shrink-0"
+      >
+        <i class="pi pi-info-circle text-2xl text-primary" aria-hidden="true"></i>
+      </div>
+      <div class="text-center sm:text-left">
+        <h2 id="info-title" class="text-base font-bold font-display text-gray-900">
+          FamilyFood - Planificación familiar
+        </h2>
+        <p class="text-sm text-gray-500 font-body mt-1">
+          Organiza las comidas de tu familia de forma sencilla. Crea recetas, planifica la semana,
+          genera tu lista de la compra y nunca más te preguntes "¿qué comemos hoy?".
+        </p>
+      </div>
+    </div>
+  </section>
+</div>
