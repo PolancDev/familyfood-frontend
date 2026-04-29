@@ -64,7 +64,7 @@ describe('RegisterComponent', () => {
       confirmPassword: 'differentpassword',
     });
     fixture.detectChanges();
-    expect(component.passwordsMismatch()).toBeTrue();
+    expect(component.passwordMismatch()).toBeTrue();
   });
 
   it('should not detect mismatch when passwords match', () => {
@@ -73,7 +73,7 @@ describe('RegisterComponent', () => {
       confirmPassword: 'password123',
     });
     fixture.detectChanges();
-    expect(component.passwordsMismatch()).toBeFalse();
+    expect(component.passwordMismatch()).toBeFalse();
   });
 
   it('should call authService.register on valid submit', () => {

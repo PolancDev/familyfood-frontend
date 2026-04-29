@@ -25,7 +25,7 @@ export const guestGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  // Si ya está logueado, redirigir al home
-  router.navigate(['/']);
+  // Si ya está logueado, redirigir al dashboard interno
+  router.navigate(['/app']);
   return false;
 };

@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, of, delay, tap, catchError, throwError } from 'rxjs';
 import { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse } from '../models';
-import { User } from '../models';
+import { User, Role } from '../models';
 
 export const AUTH_TOKEN_KEY = 'familyfood_token';
 export const AUTH_USER_KEY = 'familyfood_user';
@@ -54,6 +54,19 @@ export class AuthService {
     localStorage.removeItem(AUTH_USER_KEY);
     this._token.set(null);
     this._user.set(null);
+  }
+
+  /**
+   * Actualiza el rol del usuario en memoria y localStorage.
+   * Útil cuando el usuario crea una familia y pasa de INVITADO a ADMIN.
+   */
+  updateUserRole(newRole: Role): void {
+    const currentUser = this._user();
+    if (currentUser) {
+      const updatedUser: User = { ...currentUser, role: newRole };
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(updatedUser));
+      this._user.set(updatedUser);
+    }
   }
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
@@ -134,7 +147,7 @@ export class AuthService {
             id: 'mock-uuid-' + Date.now(),
             email: data.email,
             nombre: data.nombre,
-            role: data.role || 'ADMIN',
+            role: data.role || 'INVITADO',
           };
           return of({
             ...mockUser,

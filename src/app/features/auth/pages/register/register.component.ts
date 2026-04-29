@@ -180,11 +180,11 @@ export class RegisterComponent {
     const { nombre, email, role } = this.registerForm.value;
 
     this.authService.register({ nombre, email, password, role }).subscribe({
-      next: (response) => {
+      next: () => {
         this.loading.set(false);
         this.successMessage.set('¡Cuenta creada con éxito! Redirigiendo...');
         setTimeout(() => {
-          this.router.navigate(['/']);
+          this.router.navigate(['family-setup']);
         }, 1500);
       },
       error: (err: any) => {

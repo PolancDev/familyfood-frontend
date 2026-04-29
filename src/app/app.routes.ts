@@ -3,16 +3,6 @@ import { authGuard, guestGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
-    path: '',
-    redirectTo: 'home',
-    pathMatch: 'full',
-  },
-  {
-    path: 'home',
-    loadComponent: () => import('./features/home/home.component').then((m) => m.HomeComponent),
-    canActivate: [authGuard],
-  },
-  {
     path: 'auth',
     children: [
       {
@@ -37,7 +27,19 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'app',
+    loadComponent: () =>
+      import('./features/home/principal/principal.component').then((m) => m.PrincipalComponent),
+    canActivate: [authGuard],
+    loadChildren: () => import('./features/home/routes').then((m) => m.routes),
+  },
+  {
+    path: '',
+    redirectTo: '/auth/login',
+    pathMatch: 'full',
+  },
+  {
     path: '**',
-    redirectTo: 'home',
+    redirectTo: '/auth/login',
   },
 ];
