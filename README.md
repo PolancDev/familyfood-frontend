@@ -129,3 +129,10 @@ La aplicación usa **JWT** para autenticación:
 | `/home` | HomeComponent | AuthGuard + FamilyGuard |
 | `/family-setup` | FamilySetupComponent | AuthGuard |
 | `/family-dashboard` | FamilyDashboardComponent | AuthGuard + FamilyGuard |
+
+## Funcionalidades Implementadas
+
+- **Autenticación:** Login/Register con JWT, almacenamiento en localStorage, interceptor automático
+- **Gestión de Familias:** Crear familia, unirse por ID, dashboard con miembros y solicitudes
+- **Recetas:** CRUD completo con formularios reactivos, ingredientes dinámicos, etiquetas y niveles de cocina
+- **Diseño Responsive:** Adaptado a móvil, tablet y desktop con Tailwind CSS + PrimeNG
