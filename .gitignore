@@ -71,3 +71,9 @@ playwright/.cache/
 *.swp
 *.swo
 *~
+
+# Lint output
+lint-output.txt
+
+# Windows artifacts
+nul

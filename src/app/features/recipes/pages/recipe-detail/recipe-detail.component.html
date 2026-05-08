@@ -1,0 +1,246 @@
+<main class="space-y-6">
+  <!-- Toast para notificaciones -->
+  <p-toast position="top-right" [life]="3000" />
+
+  <!-- Diálogo de confirmación para eliminar -->
+  <p-confirmDialog header="Eliminar receta" icon="pi pi-exclamation-triangle" />
+
+  <!-- ===== ESTADO DE CARGA ===== -->
+  @if (loading() && !recipe()) {
+    <div class="space-y-6 animate-pulse" role="status" aria-label="Cargando receta">
+      <span class="sr-only">Cargando detalle de la receta...</span>
+      <!-- Skeleton header -->
+      <div class="flex items-center gap-4">
+        <div class="h-10 w-10 bg-gray-200 rounded-lg"></div>
+        <div class="flex-1 space-y-2">
+          <div class="h-6 bg-gray-200 rounded w-3/4"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+        </div>
+      </div>
+      <!-- Skeleton image -->
+      <div class="h-64 bg-gray-200 rounded-lg"></div>
+      <!-- Skeleton content -->
+      <div class="space-y-3">
+        <div class="h-4 bg-gray-200 rounded w-full"></div>
+        <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+        <div class="h-4 bg-gray-200 rounded w-4/6"></div>
+      </div>
+    </div>
+  }
+
+  <!-- ===== ESTADO DE ERROR ===== -->
+  @if (error() && !loading()) {
+    <div
+      class="flex flex-col items-center justify-center py-16 px-4 bg-red-50 border border-red-200 rounded-lg"
+      role="alert"
+    >
+      <i class="pi pi-exclamation-circle text-4xl text-red-400 mb-3" aria-hidden="true"></i>
+      <p class="text-red-700 font-body text-center mb-4">{{ error() }}</p>
+      <button
+        pButton
+        type="button"
+        label="Reintentar"
+        icon="pi pi-refresh"
+        severity="danger"
+        variant="outlined"
+        (click)="retryLoad()"
+        aria-label="Reintentar carga de la receta"
+      ></button>
+    </div>
+  }
+
+  <!-- ===== DETALLE DE RECETA ===== -->
+  @if (recipe(); as r) {
+    <article>
+      <!-- ===== NAVEGACIÓN SUPERIOR ===== -->
+      <nav class="flex items-center gap-2 mb-4" aria-label="Navegación de receta">
+        <a
+          routerLink="/app/recetas"
+          class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-secondary transition-colors no-underline min-h-[44px] px-2 -ml-2 rounded-lg hover:bg-gray-100"
+          aria-label="Volver a la lista de recetas"
+        >
+          <i class="pi pi-arrow-left" aria-hidden="true"></i>
+          <span>Volver a recetas</span>
+        </a>
+      </nav>
+
+      <!-- ===== CABECERA ===== -->
+      <header class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+        <div class="flex-1 min-w-0">
+          <h1 class="text-2xl md:text-3xl font-bold font-display text-gray-900 leading-tight">
+            {{ r.nombre }}
+          </h1>
+          @if (r.descripcion) {
+            <p class="text-gray-500 font-body mt-2 leading-relaxed">
+              {{ r.descripcion }}
+            </p>
+          }
+        </div>
+
+        <!-- Acciones -->
+        <div class="flex items-center gap-2 shrink-0">
+          <!-- Botón favorita -->
+          <button
+            type="button"
+            class="inline-flex items-center justify-center w-11 h-11 rounded-full border transition-all duration-200 min-h-[44px] min-w-[44px] focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2"
+            [ngClass]="
+              r.favorita
+                ? 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100'
+                : 'bg-white border-gray-200 text-gray-400 hover:text-red-400 hover:border-red-200'
+            "
+            (click)="toggleFavorita()"
+            [attr.aria-label]="r.favorita ? 'Quitar de favoritas' : 'Añadir a favoritas'"
+            [attr.aria-pressed]="r.favorita"
+          >
+            <i
+              [class]="r.favorita ? 'pi pi-heart-fill' : 'pi pi-heart'"
+              class="text-lg"
+              aria-hidden="true"
+            ></i>
+          </button>
+
+          <!-- Botón editar -->
+          <a
+            [routerLink]="['/app/recetas', r.id, 'editar']"
+            class="inline-flex items-center justify-center w-11 h-11 rounded-full border border-gray-200 bg-white text-gray-500 hover:text-secondary hover:border-secondary/40 transition-all duration-200 min-h-[44px] min-w-[44px] no-underline focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2"
+            aria-label="Editar receta"
+          >
+            <i class="pi pi-pencil text-lg" aria-hidden="true"></i>
+          </a>
+
+          <!-- Botón eliminar -->
+          <button
+            type="button"
+            class="inline-flex items-center justify-center w-11 h-11 rounded-full border border-gray-200 bg-white text-gray-500 hover:text-red-500 hover:border-red-200 transition-all duration-200 min-h-[44px] min-w-[44px] focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
+            (click)="confirmDelete()"
+            aria-label="Eliminar receta"
+          >
+            <i class="pi pi-trash text-lg" aria-hidden="true"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- ===== INFO RÁPIDA ===== -->
+      <section
+        class="flex flex-wrap items-center gap-4 mb-8 p-4 bg-white rounded-lg border border-gray-100 shadow-sm"
+        aria-label="Información rápida de la receta"
+      >
+        <!-- Tiempo -->
+        <div class="flex items-center gap-2">
+          <div class="flex items-center justify-center w-10 h-10 rounded-full bg-secondary/10">
+            <i class="pi pi-clock text-secondary" aria-hidden="true"></i>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 font-body">Tiempo</p>
+            <p class="text-sm font-semibold text-gray-900 font-body">{{ r.tiempoMinutos }} min</p>
+          </div>
+        </div>
+
+        <!-- Raciones -->
+        <div class="flex items-center gap-2">
+          <div class="flex items-center justify-center w-10 h-10 rounded-full bg-secondary/10">
+            <i class="pi pi-users text-secondary" aria-hidden="true"></i>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 font-body">Raciones</p>
+            <p class="text-sm font-semibold text-gray-900 font-body">
+              {{ r.raciones }} {{ r.raciones === 1 ? 'ración' : 'raciones' }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Etiquetas -->
+        @if (r.etiquetas.length > 0) {
+          <div class="flex items-center gap-2 ml-auto">
+            @for (etiqueta of r.etiquetas; track etiqueta) {
+              <span
+                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-full border"
+                [ngClass]="getEtiquetaClasses(etiqueta)"
+              >
+                @if (getEtiquetaIcon(etiqueta)) {
+                  <i [class]="getEtiquetaIcon(etiqueta)" class="text-[10px]" aria-hidden="true"></i>
+                }
+                {{ getEtiquetaLabel(etiqueta) }}
+              </span>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- ===== IMAGEN ===== -->
+      @if (r.imagen) {
+        <section class="mb-8" aria-label="Imagen de la receta">
+          <img
+            [src]="r.imagen"
+            [alt]="'Imagen de ' + r.nombre"
+            class="w-full max-h-80 object-cover rounded-lg shadow-md"
+            loading="lazy"
+          />
+        </section>
+      }
+
+      <!-- ===== CONTENIDO PRINCIPAL: INGREDIENTES + PASOS ===== -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Ingredientes -->
+        <section class="lg:col-span-1" aria-labelledby="ingredientes-title">
+          <div class="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
+            <h2
+              id="ingredientes-title"
+              class="text-lg font-bold font-display text-gray-900 mb-4 flex items-center gap-2"
+            >
+              <i class="pi pi-shopping-bag text-secondary" aria-hidden="true"></i>
+              Ingredientes
+              <span class="text-sm font-normal text-gray-400">
+                ({{ r.raciones }} {{ r.raciones === 1 ? 'ración' : 'raciones' }})
+              </span>
+            </h2>
+            <ul class="space-y-3">
+              @for (ingrediente of r.ingredientes; track ingrediente.nombre; let i = $index) {
+                <li class="flex items-start gap-3 text-sm font-body">
+                  <span
+                    class="flex items-center justify-center w-6 h-6 rounded-full bg-secondary/10 text-secondary text-xs font-bold shrink-0 mt-0.5"
+                    aria-hidden="true"
+                  >
+                    {{ i + 1 }}
+                  </span>
+                  <span class="text-gray-700">
+                    <span class="font-semibold"
+                      >{{ ingrediente.cantidad }} {{ ingrediente.unidad }}</span
+                    >
+                    {{ ingrediente.nombre }}
+                  </span>
+                </li>
+              }
+            </ul>
+          </div>
+        </section>
+
+        <!-- Pasos -->
+        <section class="lg:col-span-2" aria-labelledby="pasos-title">
+          <div class="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
+            <h2
+              id="pasos-title"
+              class="text-lg font-bold font-display text-gray-900 mb-4 flex items-center gap-2"
+            >
+              <i class="pi pi-list text-secondary" aria-hidden="true"></i>
+              Pasos de elaboración
+            </h2>
+            <ol class="space-y-4">
+              @for (paso of r.pasos; track paso; let i = $index) {
+                <li class="flex gap-4 text-sm font-body">
+                  <span
+                    class="flex items-center justify-center w-8 h-8 rounded-full bg-secondary text-white text-sm font-bold shrink-0"
+                    aria-hidden="true"
+                  >
+                    {{ i + 1 }}
+                  </span>
+                  <p class="text-gray-700 leading-relaxed pt-1">{{ paso }}</p>
+                </li>
+              }
+            </ol>
+          </div>
+        </section>
+      </div>
+    </article>
+  }
+</main>

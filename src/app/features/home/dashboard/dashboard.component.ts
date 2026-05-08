@@ -37,7 +37,7 @@ export class DashboardComponent {
       title: 'Recetas',
       description: 'Gestiona tu recetario familiar con platos para todos los gustos.',
       icon: 'pi pi-book',
-      route: '/app/recipes',
+      route: '/app/recetas',
       color: 'from-accent to-accent-dark',
     },
     {
