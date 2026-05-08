@@ -22,7 +22,7 @@ export interface RegisterResponse {
   email: string;
   nombre: string;
   role: Role;
-  token?: string;
+  token: string;
 }
 
 export interface ErrorResponse {
