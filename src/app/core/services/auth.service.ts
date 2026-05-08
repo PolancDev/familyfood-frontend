@@ -129,16 +129,13 @@ export class AuthService {
 
     return this.http.post<RegisterResponse>(`${this.apiUrl}/auth/register`, data).pipe(
       tap((response) => {
-        // El backend puede devolver token o no según implementación
-        if (response.token) {
-          const user: User = {
-            id: response.id,
-            email: response.email,
-            nombre: response.nombre,
-            role: response.role,
-          };
-          this.storeAuth(response.token, user);
-        }
+        const user: User = {
+          id: response.id,
+          email: response.email,
+          nombre: response.nombre,
+          role: response.role,
+        };
+        this.storeAuth(response.token, user);
       }),
       catchError((error) => {
         // Si el backend no está disponible, simular registro exitoso

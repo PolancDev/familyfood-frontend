@@ -1,0 +1,224 @@
+<main class="space-y-6">
+  <!-- ===== HEADER ===== -->
+  <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold font-display text-secondary">Mis Recetas</h1>
+      <p class="text-sm text-gray-500 font-body mt-1">
+        @if (loading()) {
+          Cargando...
+        } @else {
+          {{ recipes().length }} {{ recipes().length === 1 ? 'receta' : 'recetas' }}
+        }
+      </p>
+    </div>
+    <a
+      routerLink="/app/recetas/nueva"
+      class="inline-flex items-center gap-2 px-5 py-2.5 bg-secondary hover:bg-secondary-dark text-white font-semibold rounded-lg shadow-sm hover:shadow-md transition-all duration-200 no-underline focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2 min-h-[44px]"
+      aria-label="Crear nueva receta"
+    >
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      <span>Nueva receta</span>
+    </a>
+  </header>
+
+  <!-- ===== BARRA DE BÚSQUEDA Y FILTROS ===== -->
+  <section aria-labelledby="filters-title" class="space-y-4">
+    <h2 id="filters-title" class="sr-only">Filtros de búsqueda</h2>
+
+    <!-- Barra de búsqueda -->
+    <div class="relative">
+      <i
+        class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+        aria-hidden="true"
+      ></i>
+      <input
+        pInputText
+        type="text"
+        [value]="searchTerm"
+        (input)="onSearchInput($event)"
+        placeholder="Buscar recetas por nombre..."
+        class="w-full"
+        [style.padding-left]="'2.5rem'"
+        [style.padding-right]="'2.5rem'"
+        aria-label="Buscar recetas"
+      />
+      @if (searchTerm) {
+        <button
+          type="button"
+          class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+          (click)="clearFilters()"
+          aria-label="Limpiar búsqueda"
+        >
+          <i class="pi pi-times" aria-hidden="true"></i>
+        </button>
+      }
+    </div>
+
+    <!-- Filtros: Favoritas + Etiquetas -->
+    <div class="flex flex-wrap items-center gap-2">
+      <!-- Toggle Favoritas -->
+      <button
+        type="button"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 min-h-[36px] focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-1"
+        [ngClass]="
+          filterFavoritas() === true
+            ? 'bg-red-100 text-red-700 border border-red-300 shadow-sm'
+            : 'bg-white text-gray-600 border border-gray-200 hover:border-red-200 hover:text-red-600'
+        "
+        (click)="toggleFavoritas()"
+        [attr.aria-pressed]="filterFavoritas() === true"
+        aria-label="Filtrar por favoritas"
+      >
+        <i
+          [class]="filterFavoritas() === true ? 'pi pi-heart-fill' : 'pi pi-heart'"
+          class="text-sm"
+          aria-hidden="true"
+        ></i>
+        <span>Favoritas</span>
+      </button>
+
+      <!-- Separador -->
+      <span class="text-gray-300 hidden sm:inline" aria-hidden="true">|</span>
+
+      <!-- Etiquetas -->
+      @for (etiqueta of etiquetas; track etiqueta) {
+        <button
+          type="button"
+          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 min-h-[36px] focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-1"
+          [ngClass]="
+            filterEtiqueta() === etiqueta
+              ? 'bg-secondary text-white border border-secondary shadow-sm'
+              : 'bg-white text-gray-600 border border-gray-200 hover:border-secondary/40 hover:text-secondary'
+          "
+          (click)="selectEtiqueta(etiqueta)"
+          [attr.aria-pressed]="filterEtiqueta() === etiqueta"
+          [attr.aria-label]="'Filtrar por etiqueta ' + etiquetaLabels[etiqueta]"
+        >
+          <i [class]="etiquetaIcons[etiqueta]" class="text-xs" aria-hidden="true"></i>
+          <span>{{ etiquetaLabels[etiqueta] }}</span>
+        </button>
+      }
+
+      <!-- Limpiar filtros -->
+      @if (hasActiveFilters()) {
+        <button
+          type="button"
+          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors min-h-[36px]"
+          (click)="clearFilters()"
+          aria-label="Limpiar todos los filtros"
+        >
+          <i class="pi pi-filter-slash text-xs" aria-hidden="true"></i>
+          <span>Limpiar</span>
+        </button>
+      }
+    </div>
+  </section>
+
+  <!-- ===== ESTADO DE ERROR ===== -->
+  @if (error() && !loading()) {
+    <div
+      class="flex flex-col items-center justify-center py-12 px-4 bg-red-50 border border-red-200 rounded-lg"
+      role="alert"
+    >
+      <i class="pi pi-exclamation-circle text-4xl text-red-400 mb-3" aria-hidden="true"></i>
+      <p class="text-red-700 font-body text-center mb-4">{{ error() }}</p>
+      <button
+        pButton
+        type="button"
+        label="Reintentar"
+        icon="pi pi-refresh"
+        severity="danger"
+        variant="outlined"
+        (click)="retryLoad()"
+        aria-label="Reintentar carga de recetas"
+      ></button>
+    </div>
+  }
+
+  <!-- ===== ESTADO DE CARGA (Skeleton) ===== -->
+  @if (loading() && recipes().length === 0) {
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+      aria-label="Cargando recetas"
+      role="status"
+    >
+      @for (item of skeletonCards; track $index) {
+        <div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+          <p-skeleton height="192px" styleClass="m-0 rounded-none" />
+          <div class="p-4 space-y-3">
+            <p-skeleton width="70%" height="20px" />
+            <p-skeleton width="100%" height="14px" />
+            <p-skeleton width="100%" height="14px" />
+            <div class="flex justify-between">
+              <p-skeleton width="30%" height="14px" />
+              <p-skeleton width="40%" height="24px" borderRadius="999px" />
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+    <span class="sr-only">Cargando recetas...</span>
+  }
+
+  <!-- ===== LISTA DE RECETAS ===== -->
+  @if (!loading() || recipes().length > 0) {
+    @if (recipes().length > 0) {
+      <ul
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+        aria-label="Lista de recetas"
+      >
+        @for (recipe of recipes(); track recipe.id) {
+          <li>
+            <app-recipe-card
+              [recipe]="recipe"
+              (recipeClick)="onRecipeClick($event)"
+              (favoritaToggle)="onFavoritaToggle($event)"
+            />
+          </li>
+        }
+      </ul>
+    } @else if (!error()) {
+      <!-- ===== ESTADO VACÍO ===== -->
+      <div
+        class="flex flex-col items-center justify-center py-16 px-4 text-center"
+        role="status"
+        aria-label="No hay recetas"
+      >
+        <div class="flex items-center justify-center w-24 h-24 rounded-full bg-secondary/10 mb-6">
+          <i class="pi pi-book text-4xl text-secondary/40" aria-hidden="true"></i>
+        </div>
+        @if (hasActiveFilters()) {
+          <h2 class="text-xl font-bold font-display text-gray-900 mb-2">
+            No se encontraron recetas
+          </h2>
+          <p class="text-gray-500 font-body mb-6 max-w-md">
+            No hay recetas que coincidan con los filtros aplicados. Prueba a cambiar los filtros o
+            busca algo diferente.
+          </p>
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200 min-h-[44px]"
+            (click)="clearFilters()"
+            aria-label="Limpiar filtros"
+          >
+            <i class="pi pi-filter-slash" aria-hidden="true"></i>
+            Limpiar filtros
+          </button>
+        } @else {
+          <h2 class="text-xl font-bold font-display text-gray-900 mb-2">Aún no tienes recetas</h2>
+          <p class="text-gray-500 font-body mb-6 max-w-md">
+            Crea tu primera receta y empieza a organizar tus platos favoritos para toda la familia.
+          </p>
+          <a
+            routerLink="/app/recetas/nueva"
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-secondary hover:bg-secondary-dark text-white font-semibold rounded-lg shadow-sm hover:shadow-md transition-all duration-200 no-underline min-h-[44px]"
+            aria-label="Crear tu primera receta"
+          >
+            <i class="pi pi-plus" aria-hidden="true"></i>
+            Crear receta
+          </a>
+        }
+      </div>
+    }
+  }
+</main>

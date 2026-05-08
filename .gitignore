@@ -59,3 +59,9 @@ lock.json
 *.swp
 *.swo
 *~
+
+# Lint output
+lint-output.txt
+
+# Windows artifacts
+nul

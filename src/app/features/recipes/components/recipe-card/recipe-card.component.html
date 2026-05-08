@@ -1,0 +1,127 @@
+<article
+  class="group cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 h-full"
+  (click)="onCardClick()"
+  (keydown.enter)="onCardClick()"
+  (keydown.space)="onCardClick()"
+  [attr.aria-label]="'Receta: ' + recipe().nombre"
+  role="link"
+  tabindex="0"
+>
+  <p-card
+    styleClass="h-full overflow-hidden border border-gray-100 hover:border-secondary/30 transition-colors duration-300"
+  >
+    <ng-template #header>
+      <!-- Imagen de la receta o placeholder -->
+      <div
+        class="relative h-40 sm:h-48 overflow-hidden bg-gradient-to-br from-secondary/10 to-secondary/5"
+      >
+        @if (recipe().imagen) {
+          <img
+            [src]="recipe().imagen"
+            [alt]="'Imagen de ' + recipe().nombre"
+            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+          />
+        } @else {
+          <img
+            src="assets/receta_general.png" 
+            [alt]="'Imagen por defecto para ' + recipe().nombre"
+            class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500"
+          />
+          <!-- Placeholder con icono -->
+          <div class="flex items-center justify-center h-full">
+            <i class="pi pi-book text-4xl text-secondary/30" aria-hidden="true"></i>
+          </div>
+        }
+
+        <!-- Botón favorita -->
+        <button
+          type="button"
+          class="absolute top-2 right-2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-md hover:bg-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2"
+          [attr.aria-label]="recipe().favorita ? 'Quitar de favoritas' : 'Añadir a favoritas'"
+          [attr.aria-pressed]="recipe().favorita"
+          (click)="onFavoritaToggle($event)"
+        >
+          <i
+            [class]="
+              recipe().favorita
+                ? 'pi pi-heart-fill text-red-500'
+                : 'pi pi-heart text-gray-400 hover:text-red-400'
+            "
+            class="text-lg transition-colors duration-200"
+            aria-hidden="true"
+          ></i>
+        </button>
+
+        <!-- Badge de tiempo -->
+        <div
+          class="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-1 rounded-full bg-black/60 backdrop-blur-sm text-white text-xs font-semibold"
+          [attr.aria-label]="recipe().tiempoMinutos + ' minutos'"
+        >
+          <i class="pi pi-clock text-xs" aria-hidden="true"></i>
+          <span>{{ recipe().tiempoMinutos }} min</span>
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-template #content>
+      <div class="flex flex-col h-full p-1">
+        <!-- Nombre de la receta -->
+        <h3
+          class="font-display text-base sm:text-lg font-bold text-gray-900 leading-tight line-clamp-2 group-hover:text-secondary transition-colors duration-200"
+        >
+          {{ recipe().nombre }}
+        </h3>
+
+        <!-- Descripción truncada (flex-grow para empujar info hacia abajo) -->
+        <div class="flex-grow min-h-0">
+          @if (recipe().descripcion) {
+            <p class="text-sm text-gray-500 font-body leading-relaxed line-clamp-2">
+              {{ truncateDescription(recipe().descripcion, 120) }}
+            </p>
+          }
+        </div>
+
+        <!-- Info: raciones + etiquetas (mt-auto para alinear al fondo) -->
+        <footer class="flex items-center justify-between mt-auto pt-2">
+          <!-- Raciones -->
+          <span class="flex items-center gap-1 text-xs text-gray-500 font-body">
+            <i class="pi pi-users text-xs" aria-hidden="true"></i>
+            <span
+              >{{ recipe().raciones }} {{ recipe().raciones === 1 ? 'ración' : 'raciones' }}</span
+            >
+          </span>
+
+          <!-- Etiquetas (máximo 2 visibles, +N si hay más) -->
+          @if (recipe().etiquetas.length > 0) {
+            <div
+              class="flex items-center gap-1 flex-wrap justify-end"
+              aria-label="Etiquetas de la receta"
+            >
+              @for (etiqueta of visibleEtiquetas(); track etiqueta) {
+                <span
+                  class="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-semibold rounded-full border"
+                  [ngClass]="getEtiquetaClasses(etiqueta)"
+                  [attr.aria-label]="getEtiquetaLabel(etiqueta)"
+                >
+                  @if (getEtiquetaIcon(etiqueta)) {
+                    <i [class]="getEtiquetaIcon(etiqueta)" class="text-[9px]" aria-hidden="true"></i>
+                  }
+                  {{ getEtiquetaLabel(etiqueta) }}
+                </span>
+              }
+              @if (remainingEtiquetasCount() > 0) {
+                <span
+                  class="inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold rounded-full bg-gray-100 text-gray-600 border border-gray-200"
+                  [attr.aria-label]="'+' + remainingEtiquetasCount() + ' etiquetas más'"
+                >
+                  +{{ remainingEtiquetasCount() }}
+                </span>
+              }
+            </div>
+          }
+        </footer>
+      </div>
+    </ng-template>
+  </p-card>
+</article>

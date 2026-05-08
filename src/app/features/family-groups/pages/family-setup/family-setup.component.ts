@@ -49,7 +49,6 @@ export class FamilySetupComponent {
   get familyCodeControl() {
     return this.setupForm.get('familyCode');
   }
-
   readonly familyNameInvalid = computed(() => {
     const control = this.familyNameControl;
     return control?.invalid && control?.touched;
@@ -65,7 +64,6 @@ export class FamilySetupComponent {
     this.errorMessage.set(null);
     this.successMessage.set(null);
   }
-
   onSubmit(): void {
     this.errorMessage.set(null);
     this.successMessage.set(null);

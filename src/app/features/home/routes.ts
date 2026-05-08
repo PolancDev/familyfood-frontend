@@ -27,4 +27,8 @@ export const routes: Routes = [
       ),
     canActivate: [authGuard, familyGuard],
   },
+  {
+    path: 'recetas',
+    loadChildren: () => import('../../features/recipes/routes').then((m) => m.routes),
+  },
 ];
