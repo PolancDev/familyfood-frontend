@@ -1,7 +1,8 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, OnInit, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
+import { FamilyService } from '../../../core/services/family.service';
 
 // PrimeNG
 import { CardModule } from 'primeng/card';
@@ -22,8 +23,18 @@ interface DashboardCard {
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.component.html',
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   readonly authService = inject(AuthService);
+  readonly familyService = inject(FamilyService);
+
+  readonly hasPendingRequests = computed(() => this.familyService.myPendingRequests().length > 0);
+  readonly pendingRequestGroups = computed(() =>
+    this.familyService.myPendingRequests().map((r) => r.familyGroupName).join(', '),
+  );
+
+  ngOnInit(): void {
+    this.familyService.getMyPendingRequests().subscribe();
+  }
 
   readonly cards: DashboardCard[] = [
     {

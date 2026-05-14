@@ -9,6 +9,32 @@
     </p>
   </header>
 
+  <!-- Pending Request Banner -->
+  @if (hasPendingRequests()) {
+    <div
+      class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg shadow-sm"
+      role="status"
+      aria-live="polite"
+    >
+      <div class="flex items-start gap-3">
+        <i class="pi pi-clock text-amber-600 text-xl mt-1" aria-hidden="true"></i>
+        <div>
+          <h3 class="font-semibold text-amber-800 text-sm">
+            Solicitud pendiente
+          </h3>
+          <p class="text-amber-700 text-sm mt-1">
+            Tienes una solicitud pendiente para unirte a
+            <strong>{{ pendingRequestGroups() }}</strong>.
+            El administrador revisará tu solicitud pronto.
+          </p>
+          <p class="text-amber-600 text-xs mt-2">
+            Mientras tanto, puedes crear tu propio grupo familiar.
+          </p>
+        </div>
+      </div>
+    </div>
+  }
+
   <!-- Quick Access Cards -->
   <section aria-labelledby="quick-access-title">
     <h2 id="quick-access-title" class="sr-only">Acceso rápido a funcionalidades</h2>

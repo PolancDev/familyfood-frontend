@@ -1,7 +1,7 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, delay, tap, catchError, throwError } from 'rxjs';
-import { FamilyGroup, FamilyMember, JoinRequest } from '../models';
+import { FamilyGroup, FamilyMember, JoinRequest, FamilySearchResult } from '../models';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -16,6 +16,7 @@ export class FamilyService {
   readonly currentFamily = signal<FamilyGroup | null>(null);
   readonly members = signal<FamilyMember[]>([]);
   readonly pendingRequests = signal<JoinRequest[]>([]);
+  readonly myPendingRequests = signal<JoinRequest[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
 
@@ -146,6 +147,31 @@ export class FamilyService {
     );
   }
 
+  getMyPendingRequests(): Observable<JoinRequest[]> {
+    return this.http.get<JoinRequest[]>(`${this.apiUrl}/familias/mis-solicitudes`).pipe(
+      tap((requests) => {
+        this.myPendingRequests.set(requests);
+      }),
+      catchError(() => {
+        // Fallback mock para desarrollo
+        const mockRequests: JoinRequest[] = [
+          {
+            id: 'mock-request-1',
+            userId: 'mock-user-id',
+            userName: 'Usuario',
+            userEmail: 'usuario@email.com',
+            familyGroupId: 'mock-family-id',
+            familyGroupName: 'Familia García',
+            status: 'PENDING',
+            createdAt: new Date().toISOString(),
+          },
+        ];
+        this.myPendingRequests.set(mockRequests);
+        return of(mockRequests);
+      }),
+    );
+  }
+
   approveRequest(requestId: string): Observable<void> {
     this.loading.set(true);
     this.error.set(null);
@@ -163,6 +189,55 @@ export class FamilyService {
           return of(void 0).pipe(delay(500));
         }
         this.error.set('Error al aprobar solicitud');
+        return throwError(() => error);
+      }),
+    );
+  }
+
+  searchFamilies(query: string): Observable<FamilySearchResult[]> {
+    if (!query || query.trim().length === 0) {
+      return of([]);
+    }
+    return this.http
+      .get<FamilySearchResult[]>(`${this.apiUrl}/familias/buscar`, {
+        params: { q: query.trim() },
+      })
+      .pipe(
+        catchError(() => {
+          // Fallback mock para desarrollo
+          return of(this.getMockSearchResults(query));
+        }),
+      );
+  }
+
+  private getMockSearchResults(query: string): FamilySearchResult[] {
+    const mockFamilies: FamilySearchResult[] = [
+      { id: 'mock-id-1', name: 'Familia García', memberCount: 4 },
+      { id: 'mock-id-2', name: 'Los Pérez', memberCount: 3 },
+      { id: 'mock-id-3', name: 'Familia Rodríguez', memberCount: 5 },
+      { id: 'mock-id-4', name: 'Hermanos López', memberCount: 2 },
+    ];
+    const lowerQuery = query.toLowerCase();
+    return mockFamilies.filter((f) => f.name.toLowerCase().includes(lowerQuery));
+  }
+
+  transferAdmin(familyId: string, memberId: string): Observable<void> {
+    this.loading.set(true);
+    this.error.set(null);
+
+    return this.http.put<void>(`${this.apiUrl}/familias/${familyId}/transferir-admin/${memberId}`, {}).pipe(
+      tap(() => {
+        // Refrescar miembros después de la transferencia
+        this.getMembers(familyId).subscribe();
+        this.loading.set(false);
+      }),
+      catchError((error) => {
+        this.loading.set(false);
+        if (error.status === 0 || error.status === 404) {
+          // Mock: simular transferencia exitosa
+          return of(void 0).pipe(delay(500));
+        }
+        this.error.set('Error al transferir la administración');
         return throwError(() => error);
       }),
     );

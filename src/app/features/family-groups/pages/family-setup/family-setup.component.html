@@ -55,6 +55,32 @@
       </p>
     </header>
 
+    <!-- Pending Request Banner -->
+    @if (hasPendingRequests()) {
+      <div
+        class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg shadow-sm"
+        role="status"
+        aria-live="polite"
+      >
+        <div class="flex items-start gap-3">
+          <i class="pi pi-clock text-amber-600 text-xl mt-1" aria-hidden="true"></i>
+          <div>
+            <h3 class="font-semibold text-amber-800 text-sm">
+              Solicitud pendiente
+            </h3>
+            <p class="text-amber-700 text-sm mt-1">
+              Tienes una solicitud pendiente para unirte a
+              <strong>{{ pendingRequestGroups() }}</strong>.
+              El administrador revisará tu solicitud pronto.
+            </p>
+            <p class="text-amber-600 text-xs mt-2">
+              Mientras tanto, puedes crear tu propio grupo familiar.
+            </p>
+          </div>
+        </div>
+      </div>
+    }
+
     <!-- Success Message -->
     @if (successMessage()) {
       <div
@@ -173,26 +199,36 @@
         } @else {
           <!-- Join Family Mode -->
           <div class="flex flex-col gap-1">
-            <label for="familyCode" class="text-sm font-medium text-gray-900">
-              Código de familia
+            <label for="familySearch" class="text-sm font-medium text-gray-900">
+              Buscar grupo familiar
             </label>
-            <input
-              pInputText
-              type="text"
-              id="familyCode"
-              formControlName="familyCode"
+            <p-autoComplete
+              id="familySearch"
+              [suggestions]="searchResults()"
+              (completeMethod)="onSearch($event)"
+              (onSelect)="onSelect($event)"
+              field="name"
+              [showEmptyMessage]="true"
+              emptyMessage="No se encontraron grupos"
+              placeholder="Escribe el nombre del grupo..."
               class="w-full"
-              [ngClass]="{ 'ng-invalid ng-touched': familyCodeInvalid() }"
-              placeholder="Ej: ABC12345"
-              autocomplete="off"
+              [style]="{'width':'100%'}"
+              inputStyleClass="w-full p-3 border rounded-lg"
+              [loading]="searching()"
+              [delay]="300"
               aria-required="true"
-              [attr.aria-invalid]="familyCodeInvalid()"
-              [attr.aria-describedby]="familyCodeInvalid() ? 'family-code-error' : null"
-            />
-            @if (familyCodeInvalid()) {
-              <span id="family-code-error" class="text-xs text-error ml-1" role="alert">
-                El código debe tener al menos 8 caracteres
-              </span>
+            >
+              <ng-template let-family pTemplate="item">
+                <div class="flex justify-between items-center p-2">
+                  <span class="font-medium">{{ family.name }}</span>
+                  <span class="text-sm text-gray-400">{{ family.memberCount }} miembros</span>
+                </div>
+              </ng-template>
+            </p-autoComplete>
+            @if (selectedFamily()) {
+              <div class="mt-2 p-3 bg-primary-50 text-primary-700 rounded-lg text-sm" role="status" aria-live="polite">
+                ✅ Te unirás a <strong>{{ selectedFamily()?.name }}</strong>
+              </div>
             }
           </div>
         }
@@ -203,9 +239,9 @@
             type="submit"
             styleClass="w-full"
             [loading]="loading()"
-            [label]="setupMode() === 'create' ? 'Crear familia' : 'Unirse a familia'"
+            [label]="setupMode() === 'create' ? 'Crear familia' : 'Solicitar unirse'"
+            [disabled]="loading() || (setupMode() === 'join' && !selectedFamily())"
             [icon]="setupMode() === 'create' ? 'pi pi-plus-circle' : 'pi pi-sign-in'"
-            [disabled]="loading()"
           />
         </div>
       </fieldset>
@@ -219,7 +255,7 @@
         </p>
       } @else {
         <p class="text-xs text-gray-500 text-center leading-relaxed">
-          Únete a una familia
+          Busca el nombre de tu grupo familiar y solicita unirte.
         </p>
       }
       

@@ -75,14 +75,14 @@
     <!-- Family Content -->
     @if (families().length > 0) {
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Members Section -->
-        <section class="lg:col-span-2" aria-labelledby="members-title">
+        <!-- Columna izquierda (2/3): Miembros -->
+        <section class="lg:col-span-2 space-y-6" aria-labelledby="members-title">
           <p-card>
             <ng-template #title>
               <div class="flex items-center gap-2">
                 <i class="pi pi-users text-secondary" aria-hidden="true"></i>
                 <h2 id="members-title" class="text-lg font-bold font-display text-gray-900">
-                  Miembros
+                  Miembros del grupo
                 </h2>
                 <p-tag
                   [value]="members().length.toString()"
@@ -90,6 +90,10 @@
                   styleClass="ml-2"
                 />
               </div>
+            </ng-template>
+
+            <ng-template #subtitle>
+              Gestiona los miembros de tu familia
             </ng-template>
 
             <ng-template #content>
@@ -106,6 +110,9 @@
                   <ng-template #header>
                     <tr>
                       <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Nombre
+                      </th>
+                      <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         Email
                       </th>
                       <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -114,20 +121,43 @@
                       <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                         Desde
                       </th>
+                      @if (isCurrentUserAdmin()) {
+                        <th class="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          Acciones
+                        </th>
+                      }
                     </tr>
                   </ng-template>
                   <ng-template #body let-member>
                     <tr>
-                      <td class="text-sm text-gray-900">{{ member.userEmail }}</td>
+                      <td class="text-sm text-gray-900 font-medium">
+                        {{ member.userName || member.userEmail.split('@')[0] }}
+                      </td>
+                      <td class="text-sm text-gray-500">
+                        {{ member.userEmail }}
+                      </td>
                       <td>
                         <p-tag
-                          [value]="member.role"
-                          [severity]="getRoleSeverity(member.role)"
+                          [value]="member.role === 'ADMIN' ? 'Administrador' : 'Miembro'"
+                          [severity]="member.role === 'ADMIN' ? 'warning' : 'info'"
                         />
                       </td>
                       <td class="text-sm text-gray-500 hidden sm:table-cell">
                         {{ member.joinedAt | date: 'dd/MM/yyyy' }}
                       </td>
+                      @if (isCurrentUserAdmin() && member.role === 'CONSUMER') {
+                        <td>
+                          <button
+                            pButton
+                            icon="pi pi-user-edit"
+                            label="Hacer admin"
+                            class="p-button-sm p-button-text"
+                            (click)="transferAdmin(member.id)"
+                            pTooltip="Transferir administración a este miembro"
+                            tooltipPosition="top"
+                          ></button>
+                        </td>
+                      }
                     </tr>
                   </ng-template>
                 </p-table>
@@ -136,15 +166,15 @@
           </p-card>
         </section>
 
-        <!-- Pending Requests Section (Admin only) -->
-        @if (isAdmin()) {
-          <section aria-labelledby="requests-title">
+        <!-- Columna derecha (1/3): Solicitudes (solo ADMIN) -->
+        @if (isCurrentUserAdmin()) {
+          <section class="space-y-6" aria-labelledby="requests-title">
             <p-card>
               <ng-template #title>
                 <div class="flex items-center gap-2">
                   <i class="pi pi-clock text-accent" aria-hidden="true"></i>
                   <h2 id="requests-title" class="text-lg font-bold font-display text-gray-900">
-                    Solicitudes
+                    Solicitudes pendientes
                   </h2>
                   @if (hasPendingRequests()) {
                     <p-tag
@@ -156,40 +186,48 @@
                 </div>
               </ng-template>
 
+              <ng-template #subtitle>
+                Usuarios que quieren unirse a tu grupo
+              </ng-template>
+
               <ng-template #content>
                 @if (pendingRequests().length === 0) {
-                  <p class="text-sm text-gray-500 text-center py-4">
-                    No hay solicitudes pendientes.
-                  </p>
+                  <div class="text-center py-8 text-surface-400">
+                    <i class="pi pi-check-circle text-3xl mb-2 block"></i>
+                    <p class="text-sm">No hay solicitudes pendientes</p>
+                  </div>
                 } @else {
-                  <div class="space-y-3">
+                  <div class="space-y-1">
                     @for (request of pendingRequests(); track request.id) {
-                      <div
-                        class="flex flex-col gap-2 p-3 bg-gray-50 rounded-md border border-gray-100"
-                      >
+                      <div class="border-b border-surface-200 last:border-b-0 py-3">
                         <div class="flex items-center justify-between">
-                          <span class="text-sm font-medium text-gray-900 truncate">
-                            {{ request.userEmail }}
-                          </span>
-                          <p-tag
-                            [value]="request.status"
-                            [severity]="getRequestStatusSeverity(request.status)"
-                            styleClass="text-xs"
-                          />
-                        </div>
-                        <div class="flex gap-2">
-                          <p-button
-                            label="Aprobar"
-                            icon="pi pi-check"
-                            styleClass="p-button-sm p-button-success flex-1"
-                            (onClick)="approveRequest(request.id)"
-                          />
-                          <p-button
-                            label="Rechazar"
-                            icon="pi pi-times"
-                            styleClass="p-button-sm p-button-danger flex-1"
-                            (onClick)="rejectRequest(request.id)"
-                          />
+                          <div class="min-w-0 flex-1 mr-2">
+                            <p class="font-medium text-sm text-gray-900 truncate">
+                              {{ request.userName || request.userEmail }}
+                            </p>
+                            <p class="text-xs text-gray-500 truncate">{{ request.userEmail }}</p>
+                            <p class="text-xs text-gray-400 mt-1">
+                              Solicitó el {{ request.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+                            </p>
+                          </div>
+                          <div class="flex gap-2 flex-shrink-0">
+                            <button
+                              pButton
+                              icon="pi pi-check"
+                              class="p-button-rounded p-button-success p-button-sm"
+                              (click)="approveRequest(request.id)"
+                              pTooltip="Aprobar"
+                              tooltipPosition="top"
+                            ></button>
+                            <button
+                              pButton
+                              icon="pi pi-times"
+                              class="p-button-rounded p-button-danger p-button-sm"
+                              (click)="rejectRequest(request.id)"
+                              pTooltip="Rechazar"
+                              tooltipPosition="top"
+                            ></button>
+                          </div>
                         </div>
                       </div>
                     }
