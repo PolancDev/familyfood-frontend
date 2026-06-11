@@ -64,6 +64,7 @@ export interface Recipe {
   etiquetas: EtiquetaReceta[];
   imagen: string | null;
   favorita: boolean;
+  nombreCreador?: string;
 }
 
 // ===== RESPUESTA DEL LISTADO (GET /recetas) =====

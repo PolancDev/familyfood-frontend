@@ -78,6 +78,26 @@ export class RecipeFormComponent implements OnInit, OnDestroy {
   readonly etiquetasPredefinidas = ETIQUETAS_PREDEFINIDAS;
   readonly customTagInput = signal('');
 
+  // Unidades sugeridas para ingredientes
+  readonly unidadesSugeridas = [
+    'Al gusto',
+    'g', 'kg', 'mg',
+    'ml', 'l', 'cl',
+    'unidad', 'unidades',
+    'cucharada', 'cucharadas',
+    'cucharadita', 'cucharaditas',
+    'vaso', 'vasos',
+    'taza', 'tazas',
+    'pizca',
+    'rama', 'ramas',
+    'hoja', 'hojas',
+    'diente', 'dientes',
+    'trozo', 'trozos',
+    'lata', 'latas',
+    'bote', 'botes',
+    'sobre', 'sobres',
+  ];
+
   // Signal sincronizado con el form control para reactividad en template
   readonly selectedEtiquetas = signal<EtiquetaReceta[]>([]);
 
