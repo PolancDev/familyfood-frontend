@@ -39,7 +39,7 @@
   <section aria-labelledby="quick-access-title">
     <h2 id="quick-access-title" class="sr-only">Acceso rápido a funcionalidades</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      @for (card of cards; track card.route) {
+      @for (card of cards(); track card.route) {
         <a
           [routerLink]="card.route"
           class="group block no-underline"

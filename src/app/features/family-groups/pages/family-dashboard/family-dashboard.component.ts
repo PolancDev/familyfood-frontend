@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FamilyService } from '../../../../core/services/family.service';
 import { AuthService } from '../../../../core/services/auth.service';
 
@@ -18,6 +18,7 @@ import { TooltipModule } from 'primeng/tooltip';
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     CardModule,
     TableModule,
     TagModule,
@@ -107,7 +108,7 @@ export class FamilyDashboardComponent implements OnInit {
     ) {
       this.familyService.transferAdmin(familyId, memberId).subscribe({
         next: () => {
-          // Recargar miembros y solicitudes
+          // Recargar miembros y solicitudes para reflejar el cambio de rol
           this.familyService.getMembers(familyId).subscribe();
           this.familyService.getPendingRequests(familyId).subscribe();
         },
@@ -119,11 +120,35 @@ export class FamilyDashboardComponent implements OnInit {
   }
 
   approveRequest(requestId: string): void {
-    this.familyService.approveRequest(requestId).subscribe();
+    const familyId = this.currentFamily()?.id;
+    if (!familyId) return;
+
+    this.familyService.approveRequest(requestId).subscribe({
+      next: () => {
+        // Recargar miembros (el nuevo miembro aprobado aparece en la lista)
+        this.familyService.getMembers(familyId).subscribe();
+        // Recargar solicitudes pendientes (se elimina la aprobada)
+        this.familyService.getPendingRequests(familyId).subscribe();
+      },
+      error: () => {
+        this.familyService.error.set('Error al aprobar la solicitud');
+      },
+    });
   }
 
   rejectRequest(requestId: string): void {
-    this.familyService.rejectRequest(requestId).subscribe();
+    const familyId = this.currentFamily()?.id;
+    if (!familyId) return;
+
+    this.familyService.rejectRequest(requestId).subscribe({
+      next: () => {
+        // Recargar solicitudes pendientes (se elimina la rechazada)
+        this.familyService.getPendingRequests(familyId).subscribe();
+      },
+      error: () => {
+        this.familyService.error.set('Error al rechazar la solicitud');
+      },
+    });
   }
 
   goToSetup(): void {

@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, signal, computed, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
 import { FamilyService } from '../../../../core/services/family.service';
@@ -14,13 +14,15 @@ import { ButtonModule } from 'primeng/button';
 import { RadioButtonModule } from 'primeng/radiobutton';
 import { MessageModule } from 'primeng/message';
 import { DividerModule } from 'primeng/divider';
-import { AutoCompleteModule } from 'primeng/autocomplete';
+import { AutoComplete } from 'primeng/autocomplete';
+import { AutoCompleteCompleteEvent, AutoCompleteSelectEvent } from 'primeng/autocomplete';
 
 @Component({
   selector: 'app-family-setup',
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     ReactiveFormsModule,
     CardModule,
     InputTextModule,
@@ -28,7 +30,7 @@ import { AutoCompleteModule } from 'primeng/autocomplete';
     RadioButtonModule,
     MessageModule,
     DividerModule,
-    AutoCompleteModule,
+    AutoComplete,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './family-setup.component.html',
@@ -99,8 +101,8 @@ export class FamilySetupComponent implements OnInit, OnDestroy {
     this.searchSubject.next(event.query);
   }
 
-  onSelect(event: FamilySearchResult): void {
-    this.selectedFamily.set(event);
+  onSelect(event: AutoCompleteSelectEvent): void {
+    this.selectedFamily.set(event.value);
   }
 
   onSubmit(): void {

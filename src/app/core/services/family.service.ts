@@ -178,6 +178,7 @@ export class FamilyService {
 
     return this.http.put<void>(`${this.apiUrl}/familias/solicitudes/${requestId}/aprobar`, {}).pipe(
       tap(() => {
+        // Eliminar la solicitud aprobada de la lista local
         this.pendingRequests.update((requests) => requests.filter((r) => r.id !== requestId));
         this.loading.set(false);
       }),
@@ -227,8 +228,6 @@ export class FamilyService {
 
     return this.http.put<void>(`${this.apiUrl}/familias/${familyId}/transferir-admin/${memberId}`, {}).pipe(
       tap(() => {
-        // Refrescar miembros después de la transferencia
-        this.getMembers(familyId).subscribe();
         this.loading.set(false);
       }),
       catchError((error) => {

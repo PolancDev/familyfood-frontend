@@ -53,14 +53,23 @@
   @if (recipe(); as r) {
     <article>
       <!-- ===== NAVEGACIÓN SUPERIOR ===== -->
-      <nav class="flex items-center gap-2 mb-4" aria-label="Navegación de receta">
+      <nav class="flex items-center gap-4 mb-4" aria-label="Navegación de receta">
         <a
-          routerLink="/app/recetas"
+          routerLink="/app"
           class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-secondary transition-colors no-underline min-h-[44px] px-2 -ml-2 rounded-lg hover:bg-gray-100"
-          aria-label="Volver a la lista de recetas"
+          aria-label="Volver al menú principal"
         >
           <i class="pi pi-arrow-left" aria-hidden="true"></i>
-          <span>Volver a recetas</span>
+          <span>Menú principal</span>
+        </a>
+        <span class="text-gray-300" aria-hidden="true">|</span>
+        <a
+          routerLink="/app/recetas"
+          class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-secondary transition-colors no-underline min-h-[44px] px-2 rounded-lg hover:bg-gray-100"
+          aria-label="Volver a la lista de recetas"
+        >
+          <i class="pi pi-book" aria-hidden="true"></i>
+          <span>Recetas</span>
         </a>
       </nav>
 

@@ -14,6 +14,18 @@
     "
   ></div>
 
+  <!-- Volver al menú principal -->
+  <nav class="absolute top-4 left-4 md:top-6 md:left-6 z-10" aria-label="Navegación">
+    <a
+      routerLink="/app"
+      class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-secondary transition-colors no-underline min-h-[44px] px-2 rounded-lg hover:bg-white/50"
+      aria-label="Volver al menú principal"
+    >
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      <span>Volver al menú principal</span>
+    </a>
+  </nav>
+
   <section
     class="w-full max-w-lg bg-white/90 backdrop-blur-sm rounded-lg md:rounded-xl shadow-lg p-6 md:p-8 relative animate-slide-up"
     aria-labelledby="setup-title"
@@ -214,14 +226,13 @@
               class="w-full"
               [style]="{'width':'100%'}"
               inputStyleClass="w-full p-3 border rounded-lg"
-              [loading]="searching()"
               [delay]="300"
               aria-required="true"
             >
               <ng-template let-family pTemplate="item">
                 <div class="flex justify-between items-center p-2">
                   <span class="font-medium">{{ family.name }}</span>
-                  <span class="text-sm text-gray-400">{{ family.memberCount }} miembros</span>
+                  <span class="text-sm text-gray-400 ml-2">{{ family.memberCount }} miembros</span>
                 </div>
               </ng-template>
             </p-autoComplete>
