@@ -66,21 +66,29 @@
 
     <ng-template #content>
       <div class="flex flex-col h-full p-1">
-        <!-- Nombre de la receta -->
-        <h3
-          class="font-display text-base sm:text-lg font-bold text-gray-900 leading-tight line-clamp-2 group-hover:text-secondary transition-colors duration-200"
-        >
-          {{ recipe().nombre }}
-        </h3>
-
-        <!-- Descripción truncada (flex-grow para empujar info hacia abajo) -->
-        <div class="flex-grow min-h-0">
-          @if (recipe().descripcion) {
-            <p class="text-sm text-gray-500 font-body leading-relaxed line-clamp-2">
-              {{ truncateDescription(recipe().descripcion, 120) }}
+        <!-- Nombre de la receta + Creador -->
+        <div>
+          <h3
+            class="font-display text-base sm:text-lg font-bold text-gray-900 leading-tight line-clamp-2 group-hover:text-secondary transition-colors duration-200"
+          >
+            {{ recipe().nombre }}
+          </h3>
+          @if (recipe().nombreCreador) {
+            <p class="text-xs text-gray-500 font-body mt-0.5">
+              <i class="pi pi-user text-[10px] mr-1" aria-hidden="true"></i>
+              por <span class="font-medium">{{ recipe().nombreCreador }}</span>
             </p>
           }
         </div>
+
+<!-- Descripción truncada (flex-grow para empujar info hacia abajo) -->
+          <div class="flex-grow min-h-0">
+            @if (recipe().descripcion) {
+              <p class="text-sm text-gray-500 font-body leading-relaxed line-clamp-2 mt-2">
+                {{ truncateDescription(recipe().descripcion, 120) }}
+              </p>
+            }
+          </div>
 
         <!-- Info: raciones + etiquetas (mt-auto para alinear al fondo) -->
         <footer class="flex items-center justify-between mt-auto pt-2">

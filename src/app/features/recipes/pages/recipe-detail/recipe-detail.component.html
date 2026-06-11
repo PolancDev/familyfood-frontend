@@ -79,6 +79,12 @@
           <h1 class="text-2xl md:text-3xl font-bold font-display text-gray-900 leading-tight">
             {{ r.nombre }}
           </h1>
+          @if (r.nombreCreador) {
+            <p class="text-sm text-gray-500 font-body mt-1">
+              <i class="pi pi-user text-xs mr-1" aria-hidden="true"></i>
+              Receta de <span class="font-semibold text-gray-700">{{ r.nombreCreador }}</span>
+            </p>
+          }
           @if (r.descripcion) {
             <p class="text-gray-500 font-body mt-2 leading-relaxed">
               {{ r.descripcion }}

@@ -336,9 +336,15 @@
                   formControlName="unidad"
                   class="w-full"
                   placeholder="Unidad"
+                  list="unidades-list"
                   [attr.aria-invalid]="isIngredientInvalid(i, 'unidad')"
                   aria-required="true"
                 />
+                <datalist id="unidades-list">
+                  @for (unidad of unidadesSugeridas; track unidad) {
+                    <option [value]="unidad"></option>
+                  }
+                </datalist>
                 @if (isIngredientInvalid(i, 'unidad')) {
                   <span class="text-xs text-red-500 mt-0.5 block" role="alert">Obligatorio</span>
                 }
