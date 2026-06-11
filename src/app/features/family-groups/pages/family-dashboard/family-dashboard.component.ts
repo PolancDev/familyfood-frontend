@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FamilyService } from '../../../../core/services/family.service';
 import { AuthService } from '../../../../core/services/auth.service';
 
@@ -18,6 +18,7 @@ import { TooltipModule } from 'primeng/tooltip';
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     CardModule,
     TableModule,
     TagModule,
@@ -46,6 +47,19 @@ export class FamilyDashboardComponent implements OnInit {
   readonly isAdmin = computed(() => this.userRole() === 'ADMIN');
 
   readonly hasPendingRequests = computed(() => this.pendingRequests().length > 0);
+
+  readonly isCurrentUserAdmin = computed(() => {
+    const currentUserId = this.authService.user()?.id;
+    const currentFamilyId = this.currentFamily()?.id;
+    if (!currentUserId || !currentFamilyId) return false;
+    return this.members().some(
+      (m) => m.userId === currentUserId && m.role === 'ADMIN',
+    );
+  });
+
+  readonly consumerMembers = computed(() =>
+    this.members().filter((m) => m.role === 'CONSUMER'),
+  );
 
   ngOnInit(): void {
     this.loadFamilyData();
@@ -79,12 +93,62 @@ export class FamilyDashboardComponent implements OnInit {
     });
   }
 
+  transferAdmin(memberId: string): void {
+    const familyId = this.currentFamily()?.id;
+    if (!familyId) return;
+
+    const member = this.members().find((m) => m.id === memberId);
+    if (!member) return;
+
+    const memberName = member.userName || member.userEmail;
+    if (
+      confirm(
+        `¿Estás seguro de transferir la administración a ${memberName}? Tú pasarás a ser miembro CONSUMER.`,
+      )
+    ) {
+      this.familyService.transferAdmin(familyId, memberId).subscribe({
+        next: () => {
+          // Recargar miembros y solicitudes para reflejar el cambio de rol
+          this.familyService.getMembers(familyId).subscribe();
+          this.familyService.getPendingRequests(familyId).subscribe();
+        },
+        error: () => {
+          this.familyService.error.set('Error al transferir la administración');
+        },
+      });
+    }
+  }
+
   approveRequest(requestId: string): void {
-    this.familyService.approveRequest(requestId).subscribe();
+    const familyId = this.currentFamily()?.id;
+    if (!familyId) return;
+
+    this.familyService.approveRequest(requestId).subscribe({
+      next: () => {
+        // Recargar miembros (el nuevo miembro aprobado aparece en la lista)
+        this.familyService.getMembers(familyId).subscribe();
+        // Recargar solicitudes pendientes (se elimina la aprobada)
+        this.familyService.getPendingRequests(familyId).subscribe();
+      },
+      error: () => {
+        this.familyService.error.set('Error al aprobar la solicitud');
+      },
+    });
   }
 
   rejectRequest(requestId: string): void {
-    this.familyService.rejectRequest(requestId).subscribe();
+    const familyId = this.currentFamily()?.id;
+    if (!familyId) return;
+
+    this.familyService.rejectRequest(requestId).subscribe({
+      next: () => {
+        // Recargar solicitudes pendientes (se elimina la rechazada)
+        this.familyService.getPendingRequests(familyId).subscribe();
+      },
+      error: () => {
+        this.familyService.error.set('Error al rechazar la solicitud');
+      },
+    });
   }
 
   goToSetup(): void {

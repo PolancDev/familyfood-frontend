@@ -16,7 +16,7 @@ import {
   AbstractControl,
   Validators,
 } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { RecipeService } from '../../../../core/services/recipe.service';
 import {
@@ -45,6 +45,7 @@ import { CheckboxModule } from 'primeng/checkbox';
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     ReactiveFormsModule,
     InputTextModule,
     TextareaModule,
