@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { CanActivateFn, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { authGuard, guestGuard } from './auth.guard';
 import { AuthService } from '../services/auth.service';
 import { signal } from '@angular/core';
@@ -17,28 +17,20 @@ describe('Auth Guards', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [{ provide: Router, useValue: mockRouter }],
+      providers: [
+        { provide: AuthService, useValue: mockAuthService },
+        { provide: Router, useValue: mockRouter },
+      ],
     });
   });
 
   describe('authGuard', () => {
-    let guard: CanActivateFn;
-
-    beforeEach(() => {
-      TestBed.configureTestingModule({
-        providers: [
-          authGuard,
-          { provide: AuthService, useValue: mockAuthService },
-          { provide: Router, useValue: mockRouter },
-        ],
-      });
-      guard = TestBed.runInTestingContext(authGuard);
-    });
-
     it('should allow access when authenticated', () => {
       mockAuthService.isAuthenticated = signal(true);
 
-      const result = guard({} as any, { url: '/home' } as any);
+      const result = TestBed.runInInjectionContext(() =>
+        authGuard({} as any, { url: '/home' } as any)
+      );
 
       expect(result).toBeTrue();
       expect(mockRouter.navigate).not.toHaveBeenCalled();
@@ -47,7 +39,9 @@ describe('Auth Guards', () => {
     it('should deny access and redirect to login when not authenticated', () => {
       mockAuthService.isAuthenticated = signal(false);
 
-      const result = guard({} as any, { url: '/home' } as any);
+      const result = TestBed.runInInjectionContext(() =>
+        authGuard({} as any, { url: '/home' } as any)
+      );
 
       expect(result).toBeFalse();
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/auth/login'], {
@@ -58,7 +52,9 @@ describe('Auth Guards', () => {
     it('should preserve the original URL in query params', () => {
       mockAuthService.isAuthenticated = signal(false);
 
-      guard({} as any, { url: '/plan-semanal' } as any);
+      TestBed.runInInjectionContext(() =>
+        authGuard({} as any, { url: '/plan-semanal' } as any)
+      );
 
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/auth/login'], {
         queryParams: { returnUrl: '/plan-semanal' },
@@ -67,35 +63,26 @@ describe('Auth Guards', () => {
   });
 
   describe('guestGuard', () => {
-    let guard: CanActivateFn;
-
-    beforeEach(() => {
-      TestBed.configureTestingModule({
-        providers: [
-          guestGuard,
-          { provide: AuthService, useValue: mockAuthService },
-          { provide: Router, useValue: mockRouter },
-        ],
-      });
-      guard = TestBed.runInTestingContext(guestGuard);
-    });
-
     it('should allow access when not authenticated', () => {
       mockAuthService.isAuthenticated = signal(false);
 
-      const result = guard({} as any, { url: '/auth/login' } as any);
+      const result = TestBed.runInInjectionContext(() =>
+        guestGuard({} as any, { url: '/auth/login' } as any)
+      );
 
       expect(result).toBeTrue();
       expect(mockRouter.navigate).not.toHaveBeenCalled();
     });
 
-    it('should deny access and redirect to home when already authenticated', () => {
+    it('should deny access and redirect to app when already authenticated', () => {
       mockAuthService.isAuthenticated = signal(true);
 
-      const result = guard({} as any, { url: '/auth/login' } as any);
+      const result = TestBed.runInInjectionContext(() =>
+        guestGuard({} as any, { url: '/auth/login' } as any)
+      );
 
       expect(result).toBeFalse();
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/app']);
     });
   });
 });

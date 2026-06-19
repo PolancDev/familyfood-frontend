@@ -1,9 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { LoginComponent } from './login.component';
 import { AuthService } from '../../../../core/services/auth.service';
 import { signal } from '@angular/core';
+import { of, throwError } from 'rxjs';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -13,9 +14,18 @@ describe('LoginComponent', () => {
 
   beforeEach(async () => {
     mockAuthService = jasmine.createSpyObj('AuthService', ['login', 'logout']);
-    mockAuthService.isAuthenticated = signal(false);
-    mockAuthService.user = signal(null);
-    mockAuthService.token = signal(null);
+    Object.defineProperty(mockAuthService, 'isAuthenticated', {
+      value: signal(false),
+      writable: true,
+    });
+    Object.defineProperty(mockAuthService, 'user', {
+      value: signal(null),
+      writable: true,
+    });
+    Object.defineProperty(mockAuthService, 'token', {
+      value: signal(null),
+      writable: true,
+    });
 
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
 
@@ -25,6 +35,7 @@ describe('LoginComponent', () => {
         FormBuilder,
         { provide: AuthService, useValue: mockAuthService },
         { provide: Router, useValue: mockRouter },
+        { provide: ActivatedRoute, useValue: {} },
       ],
     }).compileComponents();
 
@@ -58,15 +69,17 @@ describe('LoginComponent', () => {
   });
 
   it('should call authService.login with form values on submit', () => {
-    mockAuthService.login.and.returnValue({
-      subscribe: (handlers: any) => {
-        handlers.next({
-          token: 'test',
-          user: { id: '1', email: 'test@test.com', nombre: 'Test', role: 'ADMIN' },
-        });
-        return { unsubscribe: () => {} };
-      },
-    });
+    mockAuthService.login.and.returnValue(
+      of({
+        token: 'test',
+        user: {
+          id: '1',
+          email: 'test@test.com',
+          nombre: 'Test',
+          role: 'ADMIN',
+        },
+      })
+    );
 
     component.loginForm.patchValue({
       email: 'test@test.com',
@@ -82,28 +95,27 @@ describe('LoginComponent', () => {
   });
 
   it('should navigate on successful login', () => {
-    mockAuthService.login.and.returnValue({
-      subscribe: (handlers: any) => {
-        handlers.next({
-          token: 'test',
-          user: { id: '1', email: 'test@test.com', nombre: 'Test', role: 'ADMIN' },
-        });
-        return { unsubscribe: () => {} };
-      },
-    });
+    mockAuthService.login.and.returnValue(
+      of({
+        token: 'test',
+        user: {
+          id: '1',
+          email: 'test@test.com',
+          nombre: 'Test',
+          role: 'ADMIN',
+        },
+      })
+    );
 
     component.onSubmit();
 
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['app']);
   });
 
   it('should show error message on login failure', () => {
-    mockAuthService.login.and.returnValue({
-      subscribe: (handlers: any) => {
-        handlers.error({ status: 401 });
-        return { unsubscribe: () => {} };
-      },
-    });
+    mockAuthService.login.and.returnValue(
+      throwError(() => ({ status: 401 }))
+    );
 
     component.loginForm.patchValue({
       email: 'test@test.com',

@@ -1,0 +1,407 @@
+<!-- ===== TOAST CONTAINER ===== -->
+<p-toast position="top-right" />
+
+<!-- ===== PLAN SEMANAL PAGE ===== -->
+<div class="space-y-6">
+  <!-- Back to menu link -->
+  <a
+    routerLink="/app"
+    class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors font-body"
+    aria-label="Volver al menú principal"
+  >
+    <i class="pi pi-arrow-left text-xs" aria-hidden="true"></i>
+    <span>Volver al menú principal</span>
+  </a>
+
+  <!-- Header: Week Navigation -->
+  <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <button
+        pButton
+        severity="secondary"
+        variant="outlined"
+        icon="pi pi-chevron-left"
+        (click)="previousWeek()"
+        [disabled]="loading()"
+        pTooltip="Semana anterior"
+        tooltipPosition="bottom"
+        aria-label="Semana anterior"
+        class="w-10 h-10"
+      ></button>
+
+      <div class="text-center min-w-[240px]">
+        <h1 class="text-xl md:text-2xl font-bold font-display text-secondary">
+          Semana {{ currentWeek() }}, {{ currentYear() }}
+        </h1>
+        @if (!loading() && !error()) {
+          <p class="text-sm text-gray-500 font-body">
+            {{ dateRange() }}
+          </p>
+        }
+        @if (isCurrentWeek()) {
+          <span
+            class="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full"
+          >
+            Semana actual
+          </span>
+        }
+      </div>
+
+      <button
+        pButton
+        severity="secondary"
+        variant="outlined"
+        icon="pi pi-chevron-right"
+        (click)="nextWeek()"
+        [disabled]="loading()"
+        pTooltip="Semana siguiente"
+        tooltipPosition="bottom"
+        aria-label="Semana siguiente"
+        class="w-10 h-10"
+      ></button>
+    </div>
+
+    <!-- Admin Actions -->
+    @if (showGenerateButton()) {
+      <div class="flex gap-3">
+        <button
+          pButton
+          severity="secondary"
+          variant="outlined"
+          icon="pi pi-refresh"
+          [label]="generateButtonLabel()"
+          (click)="openGenerateModal()"
+          [disabled]="loading() || generating()"
+          class="font-body"
+          [attr.aria-label]="generateButtonLabel()"
+        ></button>
+      </div>
+    }
+  </header>
+
+  <!-- Error State -->
+  @if (error()) {
+    <div class="p-6 bg-red-50 border border-red-200 rounded-lg text-center" role="alert">
+      <i class="pi pi-exclamation-triangle text-3xl text-red-500 mb-3" aria-hidden="true"></i>
+      <p class="text-red-700 font-body">{{ error() }}</p>
+      <button
+        pButton
+        severity="danger"
+        variant="outlined"
+        label="Reintentar"
+        icon="pi pi-refresh"
+        (click)="planService.recargarPlan()"
+        class="mt-4"
+        aria-label="Reintentar carga del plan"
+      ></button>
+    </div>
+  }
+
+  <!-- Loading State (Skeleton) -->
+  @if (loading()) {
+    <div class="space-y-4">
+      <div class="hidden md:grid grid-cols-8 gap-3">
+        <p-skeleton width="60px" height="40px" borderRadius="8px" />
+        @for (dia of DIAS_SEMANA; track dia) {
+          <p-skeleton width="100%" height="40px" borderRadius="8px" />
+        }
+      </div>
+      <div class="hidden md:grid grid-cols-8 gap-3">
+        <p-skeleton width="60px" height="90px" borderRadius="8px" />
+        @for (dia of DIAS_SEMANA; track dia) {
+          <p-skeleton width="100%" height="90px" borderRadius="8px" />
+        }
+      </div>
+      <div class="hidden md:grid grid-cols-8 gap-3">
+        <p-skeleton width="60px" height="90px" borderRadius="8px" />
+        @for (dia of DIAS_SEMANA; track dia) {
+          <p-skeleton width="100%" height="90px" borderRadius="8px" />
+        }
+      </div>
+      <div class="md:hidden space-y-3">
+        @for (dia of DIAS_SEMANA; track dia) {
+          <p-skeleton width="100%" height="120px" borderRadius="12px" />
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Weekly Grid: Desktop (Table) -->
+  @if (!loading() && !error() && hasPlan() && _gridVisible()) {
+    <section aria-labelledby="weekly-grid-title" class="hidden md:block">
+      <h2 id="weekly-grid-title" class="sr-only">Plan semanal</h2>
+
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <!-- Header row: Días -->
+        <div class="grid grid-cols-8 border-b border-gray-100 bg-crema" role="row">
+          <div
+            class="p-3 font-display font-bold text-sm text-secondary text-center border-r border-gray-100"
+            role="columnheader"
+          ></div>
+          @for (dia of DIAS_SEMANA; track dia; let idx = $index) {
+            <div
+              class="p-3 font-display font-bold text-center border-r border-gray-100 last:border-r-0"
+              role="columnheader"
+              [attr.aria-label]="'Columna ' + DIA_LABELS[dia]"
+            >
+              <div class="text-sm text-secondary">{{ DIA_SHORT_LABELS[dia] }}</div>
+              <div class="text-lg text-primary">{{ dayNumbers()[idx] }}</div>
+            </div>
+          }
+        </div>
+
+        <!-- COMIDA row -->
+        <div class="grid grid-cols-8 border-b border-gray-100" role="row">
+          <div
+            class="flex items-center justify-center p-3 bg-crema/50 border-r border-gray-100"
+            role="rowheader"
+          >
+            <span class="font-display font-bold text-sm text-secondary flex items-center gap-1.5">
+              <span aria-hidden="true">🍽️</span> COMIDA
+            </span>
+          </div>
+          @for (dia of DIAS_SEMANA; track dia) {
+            <div class="border-r border-gray-100 last:border-r-0 p-2" role="cell">
+              @if (getDay(dia, 'COMIDA'); as day) {
+                <button
+                  [class]="getCellClasses(day, day.estado)"
+                  (click)="openDayModal(day, dia, 'COMIDA')"
+                  [attr.aria-label]="
+                    'Editar COMIDA del ' + DIA_LABELS[dia] + ': ' + getCellText(day)
+                  "
+                >
+                  <span
+                    class="text-sm font-body font-semibold leading-tight"
+                    [class.text-green-700]="day.estado === 'NORMAL'"
+                    [class.text-amber-700]="day.estado === 'SOBRAS'"
+                    [class.text-blue-700]="day.estado === 'COMER_FUERA'"
+                    [class.text-gray-400]="day.estado === 'IMPROVISADO'"
+                  >
+                    @if (day.alergenosAdvertencia) {
+                      <i
+                        class="pi pi-exclamation-triangle text-red-500 mr-1"
+                        pTooltip="Posibles alérgenos"
+                        tooltipPosition="top"
+                        aria-label="Alerta de alérgenos"
+                      ></i>
+                    }
+                    {{ getCellText(day) }}
+                  </span>
+                  @if (getCellTime(day); as time) {
+                    <span class="text-xs text-gray-400 font-body mt-1">
+                      {{ time }}
+                    </span>
+                  }
+                </button>
+              } @else {
+                <button
+                  class="cursor-pointer rounded-lg border-2 border-dashed border-gray-200 p-3 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 min-h-[80px] flex items-center justify-center"
+                  (click)="openDayModal(undefined, dia, 'COMIDA')"
+                  [attr.aria-label]="'Añadir COMIDA del ' + DIA_LABELS[dia]"
+                >
+                  <span class="text-xs text-gray-400 font-body">Sin planificar</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- CENA row -->
+        <div class="grid grid-cols-8" role="row">
+          <div
+            class="flex items-center justify-center p-3 bg-crema/50 border-r border-gray-100"
+            role="rowheader"
+          >
+            <span class="font-display font-bold text-sm text-secondary flex items-center gap-1.5">
+              <span aria-hidden="true">🌙</span> CENA
+            </span>
+          </div>
+          @for (dia of DIAS_SEMANA; track dia) {
+            <div class="border-r border-gray-100 last:border-r-0 p-2" role="cell">
+              @if (getDay(dia, 'CENA'); as day) {
+                <button
+                  [class]="getCellClasses(day, day.estado)"
+                  (click)="openDayModal(day, dia, 'CENA')"
+                  [attr.aria-label]="'Editar CENA del ' + DIA_LABELS[dia] + ': ' + getCellText(day)"
+                >
+                  <span
+                    class="text-sm font-body font-semibold leading-tight"
+                    [class.text-green-700]="day.estado === 'NORMAL'"
+                    [class.text-amber-700]="day.estado === 'SOBRAS'"
+                    [class.text-blue-700]="day.estado === 'COMER_FUERA'"
+                    [class.text-gray-400]="day.estado === 'IMPROVISADO'"
+                  >
+                    @if (day.alergenosAdvertencia) {
+                      <i
+                        class="pi pi-exclamation-triangle text-red-500 mr-1"
+                        pTooltip="Posibles alérgenos"
+                        tooltipPosition="top"
+                        aria-label="Alerta de alérgenos"
+                      ></i>
+                    }
+                    {{ getCellText(day) }}
+                  </span>
+                  @if (getCellTime(day); as time) {
+                    <span class="text-xs text-gray-400 font-body mt-1">
+                      {{ time }}
+                    </span>
+                  }
+                </button>
+              } @else {
+                <button
+                  class="cursor-pointer rounded-lg border-2 border-dashed border-gray-200 p-3 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 min-h-[80px] flex items-center justify-center"
+                  (click)="openDayModal(undefined, dia, 'CENA')"
+                  [attr.aria-label]="'Añadir CENA del ' + DIA_LABELS[dia]"
+                >
+                  <span class="text-xs text-gray-400 font-body">Sin planificar</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- Weekly Grid: Mobile (Cards) -->
+  @if (!loading() && !error() && hasPlan() && _gridVisible()) {
+    <section aria-labelledby="mobile-weekly-title" class="md:hidden space-y-4">
+      <h2 id="mobile-weekly-title" class="sr-only">Plan semanal</h2>
+
+      @for (dia of DIAS_SEMANA; track dia) {
+        <p-card styleClass="shadow-sm border border-gray-100">
+          <ng-template #title>
+            <span class="font-display font-bold text-secondary text-lg">
+              {{ DIA_LABELS[dia] }}
+            </span>
+          </ng-template>
+          <ng-template #content>
+            <div class="space-y-3">
+              <!-- COMIDA slot -->
+              <div>
+                <span
+                  class="text-xs font-bold font-display text-secondary uppercase tracking-wider"
+                >
+                  🍽️ Comida
+                </span>
+                <div class="mt-1">
+                  @if (getDay(dia, 'COMIDA'); as day) {
+                    <button
+                      [class]="getCellClasses(day, day.estado) + ' w-full'"
+                      (click)="openDayModal(day, dia, 'COMIDA')"
+                      [attr.aria-label]="
+                        'Editar COMIDA del ' + DIA_LABELS[dia] + ': ' + getCellText(day)
+                      "
+                    >
+                      <span
+                        class="text-sm font-body font-semibold leading-tight"
+                        [class.text-green-700]="day.estado === 'NORMAL'"
+                        [class.text-amber-700]="day.estado === 'SOBRAS'"
+                        [class.text-blue-700]="day.estado === 'COMER_FUERA'"
+                        [class.text-gray-400]="day.estado === 'IMPROVISADO'"
+                      >
+                        @if (day.alergenosAdvertencia) {
+                          <i
+                            class="pi pi-exclamation-triangle text-red-500 mr-1"
+                            pTooltip="Posibles alérgenos"
+                            tooltipPosition="top"
+                            aria-label="Alerta de alérgenos"
+                          ></i>
+                        }
+                        {{ getCellText(day) }}
+                      </span>
+                      @if (getCellTime(day); as time) {
+                        <span class="text-xs text-gray-400 font-body ml-2">
+                          {{ time }}
+                        </span>
+                      }
+                    </button>
+                  } @else {
+                    <button
+                      class="cursor-pointer rounded-lg border-2 border-dashed border-gray-200 p-3 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 min-h-[48px] flex items-center justify-center w-full"
+                      (click)="openDayModal(undefined, dia, 'COMIDA')"
+                      [attr.aria-label]="'Añadir COMIDA del ' + DIA_LABELS[dia]"
+                    >
+                      <span class="text-xs text-gray-400 font-body">Sin planificar</span>
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- CENA slot -->
+              <div>
+                <span
+                  class="text-xs font-bold font-display text-secondary uppercase tracking-wider"
+                >
+                  🌙 Cena
+                </span>
+                <div class="mt-1">
+                  @if (getDay(dia, 'CENA'); as day) {
+                    <button
+                      [class]="getCellClasses(day, day.estado) + ' w-full'"
+                      (click)="openDayModal(day, dia, 'CENA')"
+                      [attr.aria-label]="
+                        'Editar CENA del ' + DIA_LABELS[dia] + ': ' + getCellText(day)
+                      "
+                    >
+                      <span
+                        class="text-sm font-body font-semibold leading-tight"
+                        [class.text-green-700]="day.estado === 'NORMAL'"
+                        [class.text-amber-700]="day.estado === 'SOBRAS'"
+                        [class.text-blue-700]="day.estado === 'COMER_FUERA'"
+                        [class.text-gray-400]="day.estado === 'IMPROVISADO'"
+                      >
+                        @if (day.alergenosAdvertencia) {
+                          <i
+                            class="pi pi-exclamation-triangle text-red-500 mr-1"
+                            pTooltip="Posibles alérgenos"
+                            tooltipPosition="top"
+                            aria-label="Alerta de alérgenos"
+                          ></i>
+                        }
+                        {{ getCellText(day) }}
+                      </span>
+                      @if (getCellTime(day); as time) {
+                        <span class="text-xs text-gray-400 font-body ml-2">
+                          {{ time }}
+                        </span>
+                      }
+                    </button>
+                  } @else {
+                    <button
+                      class="cursor-pointer rounded-lg border-2 border-dashed border-gray-200 p-3 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 min-h-[48px] flex items-center justify-center w-full"
+                      (click)="openDayModal(undefined, dia, 'CENA')"
+                      [attr.aria-label]="'Añadir CENA del ' + DIA_LABELS[dia]"
+                    >
+                      <span class="text-xs text-gray-400 font-body">Sin planificar</span>
+                    </button>
+                  }
+                </div>
+              </div>
+            </div>
+          </ng-template>
+        </p-card>
+      }
+    </section>
+  }
+
+  <!-- Modals -->
+  @if (showDayModal() && selectedDay()) {
+    <app-plan-day-modal
+      [visible]="showDayModal()"
+      [day]="selectedDay()!"
+      [recipes]="recipes()"
+      (closed)="closeDayModal()"
+      (saved)="onDaySaved($event)"
+    />
+  }
+
+  @if (showGenerateModal()) {
+    <app-generate-menu-modal
+      [visible]="showGenerateModal()"
+      [recipes]="recipes()"
+      (closed)="closeGenerateModal()"
+      (generated)="onMenuGenerated($event)"
+    />
+  }
+</div>

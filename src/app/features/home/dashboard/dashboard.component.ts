@@ -43,7 +43,7 @@ export class DashboardComponent implements OnInit {
         title: 'Plan Semanal',
         description: 'Organiza las comidas de toda la semana para tu familia.',
         icon: 'pi pi-calendar',
-        route: '/app/weekly-plan',
+        route: '/app/plan-semanal',
         color: 'from-primary to-primary-dark',
       },
       {

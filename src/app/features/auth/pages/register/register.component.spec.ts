@@ -1,8 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { RegisterComponent } from './register.component';
 import { AuthService } from '../../../../core/services/auth.service';
+import { signal } from '@angular/core';
+import { of, throwError } from 'rxjs';
 
 describe('RegisterComponent', () => {
   let component: RegisterComponent;
@@ -12,9 +14,18 @@ describe('RegisterComponent', () => {
 
   beforeEach(async () => {
     mockAuthService = jasmine.createSpyObj('AuthService', ['register', 'logout']);
-    mockAuthService.isAuthenticated = jasmine.createSpyObj('Signal', ['get']);
-    mockAuthService.user = jasmine.createSpyObj('Signal', ['get']);
-    mockAuthService.token = jasmine.createSpyObj('Signal', ['get']);
+    Object.defineProperty(mockAuthService, 'isAuthenticated', {
+      value: signal(false),
+      writable: true,
+    });
+    Object.defineProperty(mockAuthService, 'user', {
+      value: signal(null),
+      writable: true,
+    });
+    Object.defineProperty(mockAuthService, 'token', {
+      value: signal(null),
+      writable: true,
+    });
 
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
 
@@ -24,6 +35,7 @@ describe('RegisterComponent', () => {
         FormBuilder,
         { provide: AuthService, useValue: mockAuthService },
         { provide: Router, useValue: mockRouter },
+        { provide: ActivatedRoute, useValue: {} },
       ],
     }).compileComponents();
 
@@ -63,6 +75,7 @@ describe('RegisterComponent', () => {
       password: 'password123',
       confirmPassword: 'differentpassword',
     });
+    component.onSubmit();
     fixture.detectChanges();
     expect(component.passwordMismatch()).toBeTrue();
   });
@@ -72,17 +85,21 @@ describe('RegisterComponent', () => {
       password: 'password123',
       confirmPassword: 'password123',
     });
+    component.onSubmit();
     fixture.detectChanges();
     expect(component.passwordMismatch()).toBeFalse();
   });
 
   it('should call authService.register on valid submit', () => {
-    mockAuthService.register.and.returnValue({
-      subscribe: (handlers: any) => {
-        handlers.next({ id: '1', email: 'test@test.com', nombre: 'Test', role: 'ADMIN' });
-        return { unsubscribe: () => {} };
-      },
-    });
+    mockAuthService.register.and.returnValue(
+      of({
+        id: '1',
+        email: 'test@test.com',
+        nombre: 'Test',
+        role: 'ADMIN',
+        token: 'mock-token',
+      })
+    );
 
     component.registerForm.patchValue({
       nombre: 'Test User',
@@ -103,12 +120,15 @@ describe('RegisterComponent', () => {
   });
 
   it('should show success message on successful registration', () => {
-    mockAuthService.register.and.returnValue({
-      subscribe: (handlers: any) => {
-        handlers.next({ id: '1', email: 'test@test.com', nombre: 'Test', role: 'ADMIN' });
-        return { unsubscribe: () => {} };
-      },
-    });
+    mockAuthService.register.and.returnValue(
+      of({
+        id: '1',
+        email: 'test@test.com',
+        nombre: 'Test',
+        role: 'ADMIN',
+        token: 'mock-token',
+      })
+    );
 
     component.registerForm.patchValue({
       nombre: 'Test User',
@@ -137,12 +157,9 @@ describe('RegisterComponent', () => {
   });
 
   it('should show error message on registration failure', () => {
-    mockAuthService.register.and.returnValue({
-      subscribe: (handlers: any) => {
-        handlers.error({ status: 409 });
-        return { unsubscribe: () => {} };
-      },
-    });
+    mockAuthService.register.and.returnValue(
+      throwError(() => ({ status: 409 }))
+    );
 
     component.registerForm.patchValue({
       nombre: 'Test User',

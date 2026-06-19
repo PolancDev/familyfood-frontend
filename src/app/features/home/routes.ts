@@ -31,4 +31,12 @@ export const routes: Routes = [
     path: 'recetas',
     loadChildren: () => import('../../features/recipes/routes').then((m) => m.routes),
   },
+  {
+    path: 'plan-semanal',
+    loadComponent: () =>
+      import('../../features/plan-semanal/pages/plan-semanal-page/plan-semanal-page.component').then(
+        (m) => m.PlanSemanalPageComponent,
+      ),
+    canActivate: [authGuard],
+  },
 ];
