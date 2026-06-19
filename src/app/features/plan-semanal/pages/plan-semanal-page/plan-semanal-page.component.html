@@ -32,6 +32,9 @@
       <div class="text-center min-w-[240px]">
         <h1 class="text-xl md:text-2xl font-bold font-display text-secondary">
           Semana {{ currentWeek() }}, {{ currentYear() }}
+          @if (!isAdmin()) {
+            <span class="text-xs text-gray-400 italic ml-2 font-body font-normal">(solo lectura)</span>
+          }
         </h1>
         @if (!loading() && !error()) {
           <p class="text-sm text-gray-500 font-body">
@@ -127,7 +130,7 @@
   }
 
   <!-- Weekly Grid: Desktop (Table) -->
-  @if (!loading() && !error() && hasPlan() && _gridVisible()) {
+  @if (!loading() && !error() && planHash()) {
     <section aria-labelledby="weekly-grid-title" class="hidden md:block">
       <h2 id="weekly-grid-title" class="sr-only">Plan semanal</h2>
 
@@ -165,7 +168,9 @@
               @if (getDay(dia, 'COMIDA'); as day) {
                 <button
                   [class]="getCellClasses(day, day.estado)"
-                  (click)="openDayModal(day, dia, 'COMIDA')"
+                  (click)="isAdmin() && openDayModal(day, dia, 'COMIDA')"
+                  [class.cursor-not-allowed]="!isAdmin()"
+                  [attr.aria-disabled]="!isAdmin() ? true : null"
                   [attr.aria-label]="
                     'Editar COMIDA del ' + DIA_LABELS[dia] + ': ' + getCellText(day)
                   "
@@ -195,8 +200,11 @@
                 </button>
               } @else {
                 <button
-                  class="cursor-pointer rounded-lg border-2 border-dashed border-gray-200 p-3 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 min-h-[80px] flex items-center justify-center"
-                  (click)="openDayModal(undefined, dia, 'COMIDA')"
+                  class="rounded-lg border-2 border-dashed border-gray-200 p-3 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 min-h-[80px] flex items-center justify-center"
+                  [class.cursor-pointer]="isAdmin()"
+                  [class.cursor-not-allowed]="!isAdmin()"
+                  (click)="isAdmin() && openDayModal(undefined, dia, 'COMIDA')"
+                  [attr.aria-disabled]="!isAdmin() ? true : null"
                   [attr.aria-label]="'Añadir COMIDA del ' + DIA_LABELS[dia]"
                 >
                   <span class="text-xs text-gray-400 font-body">Sin planificar</span>
@@ -221,7 +229,9 @@
               @if (getDay(dia, 'CENA'); as day) {
                 <button
                   [class]="getCellClasses(day, day.estado)"
-                  (click)="openDayModal(day, dia, 'CENA')"
+                  (click)="isAdmin() && openDayModal(day, dia, 'CENA')"
+                  [class.cursor-not-allowed]="!isAdmin()"
+                  [attr.aria-disabled]="!isAdmin() ? true : null"
                   [attr.aria-label]="'Editar CENA del ' + DIA_LABELS[dia] + ': ' + getCellText(day)"
                 >
                   <span
@@ -249,8 +259,11 @@
                 </button>
               } @else {
                 <button
-                  class="cursor-pointer rounded-lg border-2 border-dashed border-gray-200 p-3 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 min-h-[80px] flex items-center justify-center"
-                  (click)="openDayModal(undefined, dia, 'CENA')"
+                  class="rounded-lg border-2 border-dashed border-gray-200 p-3 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 min-h-[80px] flex items-center justify-center"
+                  [class.cursor-pointer]="isAdmin()"
+                  [class.cursor-not-allowed]="!isAdmin()"
+                  (click)="isAdmin() && openDayModal(undefined, dia, 'CENA')"
+                  [attr.aria-disabled]="!isAdmin() ? true : null"
                   [attr.aria-label]="'Añadir CENA del ' + DIA_LABELS[dia]"
                 >
                   <span class="text-xs text-gray-400 font-body">Sin planificar</span>
@@ -264,7 +277,7 @@
   }
 
   <!-- Weekly Grid: Mobile (Cards) -->
-  @if (!loading() && !error() && hasPlan() && _gridVisible()) {
+  @if (!loading() && !error() && planHash()) {
     <section aria-labelledby="mobile-weekly-title" class="md:hidden space-y-4">
       <h2 id="mobile-weekly-title" class="sr-only">Plan semanal</h2>
 
@@ -288,7 +301,9 @@
                   @if (getDay(dia, 'COMIDA'); as day) {
                     <button
                       [class]="getCellClasses(day, day.estado) + ' w-full'"
-                      (click)="openDayModal(day, dia, 'COMIDA')"
+                      (click)="isAdmin() && openDayModal(day, dia, 'COMIDA')"
+                      [class.cursor-not-allowed]="!isAdmin()"
+                      [attr.aria-disabled]="!isAdmin() ? true : null"
                       [attr.aria-label]="
                         'Editar COMIDA del ' + DIA_LABELS[dia] + ': ' + getCellText(day)
                       "
@@ -318,8 +333,11 @@
                     </button>
                   } @else {
                     <button
-                      class="cursor-pointer rounded-lg border-2 border-dashed border-gray-200 p-3 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 min-h-[48px] flex items-center justify-center w-full"
-                      (click)="openDayModal(undefined, dia, 'COMIDA')"
+                      class="rounded-lg border-2 border-dashed border-gray-200 p-3 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 min-h-[48px] flex items-center justify-center w-full"
+                      [class.cursor-pointer]="isAdmin()"
+                      [class.cursor-not-allowed]="!isAdmin()"
+                      (click)="isAdmin() && openDayModal(undefined, dia, 'COMIDA')"
+                      [attr.aria-disabled]="!isAdmin() ? true : null"
                       [attr.aria-label]="'Añadir COMIDA del ' + DIA_LABELS[dia]"
                     >
                       <span class="text-xs text-gray-400 font-body">Sin planificar</span>
@@ -339,7 +357,9 @@
                   @if (getDay(dia, 'CENA'); as day) {
                     <button
                       [class]="getCellClasses(day, day.estado) + ' w-full'"
-                      (click)="openDayModal(day, dia, 'CENA')"
+                      (click)="isAdmin() && openDayModal(day, dia, 'CENA')"
+                      [class.cursor-not-allowed]="!isAdmin()"
+                      [attr.aria-disabled]="!isAdmin() ? true : null"
                       [attr.aria-label]="
                         'Editar CENA del ' + DIA_LABELS[dia] + ': ' + getCellText(day)
                       "
@@ -369,8 +389,11 @@
                     </button>
                   } @else {
                     <button
-                      class="cursor-pointer rounded-lg border-2 border-dashed border-gray-200 p-3 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 min-h-[48px] flex items-center justify-center w-full"
-                      (click)="openDayModal(undefined, dia, 'CENA')"
+                      class="rounded-lg border-2 border-dashed border-gray-200 p-3 transition-all duration-200 hover:border-gray-300 hover:bg-gray-50 min-h-[48px] flex items-center justify-center w-full"
+                      [class.cursor-pointer]="isAdmin()"
+                      [class.cursor-not-allowed]="!isAdmin()"
+                      (click)="isAdmin() && openDayModal(undefined, dia, 'CENA')"
+                      [attr.aria-disabled]="!isAdmin() ? true : null"
                       [attr.aria-label]="'Añadir CENA del ' + DIA_LABELS[dia]"
                     >
                       <span class="text-xs text-gray-400 font-body">Sin planificar</span>

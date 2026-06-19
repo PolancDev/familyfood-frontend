@@ -80,8 +80,6 @@ export class PlanSemanalPageComponent implements OnInit {
   readonly showGenerateModal = signal(false);
   readonly selectedDay = signal<PlanDay | null>(null);
   readonly generating = signal(false);
-  readonly _gridVisible = signal(true);
-
   // ===== SIGNALS DEL SERVICIO =====
   readonly plan = this.planService.plan;
   readonly loading = this.planService.loading;
@@ -167,12 +165,6 @@ export class PlanSemanalPageComponent implements OnInit {
     const empty = this.emptySlotCount();
     return empty > 0 && empty < 14;
   });
-
-  /** Fuerza re-render del grid toggleando _gridVisible */
-  private refreshGrid(): void {
-    this._gridVisible.set(false);
-    setTimeout(() => this._gridVisible.set(true));
-  }
 
   /** Obtiene el PlanDay para una combinación día + tipo */
   getDay(dia: DiaSemana, tipo: TipoComida): PlanDay | undefined {
@@ -288,7 +280,6 @@ export class PlanSemanalPageComponent implements OnInit {
       .subscribe({
         next: () => {
           this.closeDayModal();
-          this.refreshGrid();
           this.messageService.add({
             severity: 'success',
             summary: 'Guardado',
@@ -336,7 +327,6 @@ export class PlanSemanalPageComponent implements OnInit {
       next: () => {
         this.generating.set(false);
         this.closeGenerateModal();
-        this.refreshGrid();
         this.messageService.add({
           severity: 'success',
           summary: 'Menú generado',
